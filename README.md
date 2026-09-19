@@ -1,4 +1,4 @@
-## Hi there 👋
+![Snake animation](https://raw.githubusercontent.com/SchneizelCodes/SchneizelCodes/output/snake.svg)
 
 <!--
 **SchneizelCodes/SchneizelCodes** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
