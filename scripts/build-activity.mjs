@@ -10,7 +10,7 @@
 // "Include private contributions on my profile" in your GitHub settings.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { THEMES, SANS, MONO, EASE, esc, dotGrid, reducedMotion } from './lib.mjs';
+import { THEMES, SANS, MONO, EASE, esc, dotGrid, reducedMotion, themed, gradDef, splitSvg } from './lib.mjs';
 import { snakeCards } from './build-snake-card.mjs';
 
 const USER = process.env.GH_USER || 'SchneizelCodes';
@@ -127,65 +127,67 @@ function odometer(value, x, y, size, color, delay, cls) {
   return { svg: parts.join(''), width: cx - x, lh };
 }
 
-function card(st, T) {
-  const W = 1200, H = 360, pad = 36;
+function card(st, baseTheme, m = false) {
+  const T = themed(baseTheme, 'cordillera');
+  const W = m ? 480 : 1200, H = m ? 540 : 360, pad = m ? 28 : 36;
   const blocks = [
-    { label: 'Total contributions', sub: `Since ${st.since}`, value: st.total, color: T.text },
-    { label: `In ${st.monthName}`, sub: 'contributions this month', value: st.thisMonth, color: T.accent },
-    { label: 'Weekly streak', sub: 'weeks in a row with commits', value: st.weekStreak, color: T.text },
+    { label: m ? 'Total' : 'Total contributions', sub: `Since ${st.since}`, value: st.total, color: T.text },
+    { label: m ? `In ${st.monthName.slice(0, 3)}` : `In ${st.monthName}`, sub: 'contributions this month', value: st.thisMonth, color: T.accent },
+    { label: m ? 'Week streak' : 'Weekly streak', sub: 'weeks in a row with commits', value: st.weekStreak, color: T.text },
   ];
   let defs = '';
   const blockSvg = blocks.map((b, i) => {
-    const x = pad + i * 205, y = 150;
-    const o = odometer(b.value, x, y, 56, b.color, 0.3 + i * 0.25, 'num');
-    defs += `<clipPath id="c${i}"><rect x="${x - 4}" y="${y - 56}" width="200" height="${o.lh + 6}"/></clipPath>`;
+    const x = pad + i * (m ? 144 : 205), y = m ? 140 : 150, size = m ? 44 : 56;
+    const o = odometer(b.value, x, y, size, b.color, 0.3 + i * 0.25, 'num');
+    defs += `<clipPath id="c${i}"><rect x="${x - 4}" y="${y - size}" width="${m ? 140 : 200}" height="${o.lh + 6}"/></clipPath>`;
     return `<g clip-path="url(#c${i})">${o.svg}</g>
-      <text x="${x}" y="${y + 40}" class="lbl">${esc(b.label)}</text>
-      <text x="${x}" y="${y + 64}" class="sub">${esc(b.sub)}</text>`;
+      <text x="${x}" y="${y + (m ? 34 : 40)}" class="lbl">${esc(b.label)}</text>
+      ${m ? '' : `<text x="${x}" y="${y + 64}" class="sub">${esc(b.sub)}</text>`}`;
   }).join('');
 
   // Weekly bars for the last 16 weeks. A square-root scale keeps quieter weeks visible
   // next to a very busy one; the exact numbers are in the description and labels.
-  const n = st.recent.length, bx = 690, gap = 8, bw = (470 - gap * (n - 1)) / n, base = 262, maxH = 150;
+  const n = st.recent.length, bx = m ? pad : 690, span = m ? W - pad * 2 : 470, gap = m ? 6 : 8, bw = (span - gap * (n - 1)) / n, base = m ? 440 : 262, maxH = m ? 160 : 150;
   const max = Math.max(1, ...st.recent.map((w) => w.count));
   const bars = st.recent.map((w, i) => {
     const h = w.count ? Math.max(6, Math.sqrt(w.count / max) * maxH) : 3;
     const x = bx + i * (bw + gap);
     const last = i === n - 1;
     const peak = w.count === max;
-    return `<rect x="${x}" y="${base - h}" width="${bw}" height="${h}" rx="5" fill="${last ? T.accent : T.lineHi}" class="bar" style="transform-origin:${x}px ${base}px;animation-delay:${0.3 + i * 0.04}s"/>
-      ${i % 4 === 0 ? `<text x="${x}" y="${base + 24}" class="m">${w.label}</text>` : ''}
+    return `<rect x="${x}" y="${base - h}" width="${bw}" height="${h}" rx="5" fill="${last ? 'url(#bar)' : T.lineHi}" class="bar" style="transform-origin:${x}px ${base}px;animation-delay:${0.3 + i * 0.04}s"/>
+      ${i % 4 === 0 ? `<text x="${x}" y="${base + (m ? 28 : 24)}" class="m">${w.label}</text>` : ''}
       ${peak || last ? `<text x="${x + bw / 2}" y="${base - h - 10}" text-anchor="middle" class="peak"${last ? ` fill="${T.accent}"` : ''}>${w.count}</text>` : ''}`;
   }).join('');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="t d">
 <title id="t">GitHub activity for ${esc(USER)}</title>
 <desc id="d">${st.total} contributions since ${st.since}. Weekly streak: ${st.weekStreak} weeks. Longest daily streak: ${st.longest} days. ${st.thisMonth} in ${st.monthName}. Most active on ${st.busiest}. Last 16 weeks: ${st.recent.map((w) => `week of ${w.label}: ${w.count}`).join(', ')}.</desc>
-<defs>${dotGrid('dots', T)}${defs}</defs>
+<defs>${dotGrid('dots', T)}${defs}${gradDef('g', T)}<linearGradient id="cv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.cardTop}"/><stop offset=".55" stop-color="${T.card}"/></linearGradient>${gradDef('bar', T, 0, 1, 0, 0)}</defs>
 <style>
-  .num{font:700 56px ${SANS};font-variant-numeric:tabular-nums}
+  .num{font:700 ${m ? 44 : 56}px ${SANS};font-variant-numeric:tabular-nums}
   .roll{animation:roll 1.6s ${EASE} backwards}
   @keyframes roll{from{transform:translateY(0)}}
-  .lbl{font:600 16px ${SANS};fill:${T.text}}
+  .lbl{font:600 ${m ? 17 : 16}px ${SANS};fill:${T.text}}
   .sub{font:400 14px ${SANS};fill:${T.muted}}
   .eyebrow{font:600 13px ${MONO};letter-spacing:2.2px;fill:${T.muted}}
-  .note{font:400 15px ${SANS};fill:${T.muted}}
-  .m{font:500 12px ${MONO};fill:${T.faint}}
+  .note{font:400 ${m ? 16 : 15}px ${SANS};fill:${T.muted}}
+  .m{font:500 ${m ? 14 : 12}px ${MONO};fill:${T.faint}}
   .peak{font:600 13px ${MONO};fill:${T.text}}
   .bar{animation:grow 14s ${EASE} infinite backwards}
   @keyframes grow{0%{transform:scaleY(0)}8%,92%{transform:scaleY(1)}100%{transform:scaleY(0)}}
   .pulse{animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
   ${reducedMotion()}
 </style>
-<rect x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="24" fill="${T.card}" stroke="${T.line}"/>
+<rect x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="24" fill="url(#cv)" stroke="${T.line}"/>
 <rect x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="24" fill="url(#dots)"/>
+<path d="M24 1.5H${W - 24}" stroke="url(#g)" stroke-width="3"/>
 <circle cx="${pad + 5}" cy="${pad + 10}" r="5" fill="${T.ok}" class="pulse"/>
-<text x="${pad + 20}" y="${pad + 15}" class="eyebrow">LIVE FROM GITHUB · UPDATED ${st.updated}</text>
+<text x="${pad + 20}" y="${pad + 15}" class="eyebrow">${m ? 'LIVE · ' + st.updated : 'LIVE FROM GITHUB · UPDATED ' + st.updated}</text>
 ${blockSvg}
-<text x="${pad}" y="${H - 34}" class="note">Longest daily streak: ${st.longest} days · most active on ${esc(st.busiest)}</text>
-<line x1="650" y1="62" x2="650" y2="${H - 40}" stroke="${T.line}"/>
-<text x="${bx}" y="${pad + 15}" class="eyebrow">LAST 16 WEEKS</text>
-<line x1="${bx}" y1="${base + 0.5}" x2="${bx + 470}" y2="${base + 0.5}" stroke="${T.line}"/>
+<text x="${pad}" y="${H - (m ? 30 : 34)}" class="note">${m ? `Longest streak ${st.longest} days · ${esc(st.busiest)}` : `Longest daily streak: ${st.longest} days · most active on ${esc(st.busiest)}`}</text>
+${m ? `<line x1="${pad}" y1="200" x2="${W - pad}" y2="200" stroke="${T.line}"/>` : `<line x1="650" y1="62" x2="650" y2="${H - 40}" stroke="${T.line}"/>`}
+<text x="${bx}" y="${m ? 240 : pad + 15}" class="eyebrow">LAST 16 WEEKS</text>
+<line x1="${bx}" y1="${base + 0.5}" x2="${bx + span}" y2="${base + 0.5}" stroke="${T.line}"/>
 ${bars}
 </svg>`;
 }
@@ -193,7 +195,11 @@ ${bars}
 const days = DEMO ? demoDays() : await fetchDays();
 const st = stats(days);
 mkdirSync(OUT, { recursive: true });
-for (const [name, T] of Object.entries(THEMES)) writeFileSync(`${OUT}/activity-${name}.svg`, card(st, T));
+for (const m of [false, true]) {
+  const s = m ? '-m' : '';
+  for (const [name, T] of Object.entries(THEMES)) writeFileSync(`${OUT}/activity${s}-${name}.svg`, card(st, T, m));
+  writeFileSync(`${OUT}/activity${s}-split.svg`, splitSvg(card(st, THEMES.dark, m), card(st, THEMES.light, m)));
+}
 // Wrap snk's snake (already in OUT when the workflow runs snk first) into the spotlight card.
 snakeCards({ dir: OUT, days, themes: THEMES, user: USER });
 console.log(`Activity card written to ${OUT}/ (${st.total} contributions, ${st.weekStreak}-week streak)`);

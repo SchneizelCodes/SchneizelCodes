@@ -6,23 +6,33 @@
 // written dist/snake.svg and dist/snake-dark.svg. Writes dist/snake-card-{dark,light}.svg.
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { SANS, MONO, EASE, esc, dotGrid, reducedMotion } from './lib.mjs';
+import { SANS, MONO, EASE, esc, dotGrid, reducedMotion, themed, gradDef, mixHex, splitSvg } from './lib.mjs';
 
-// Heatmap scale: tints of the single amber accent, so the snake card matches the page.
-const HEAT = {
-  dark: { ce: '#151e2e', c1: '#3a2a12', c2: '#6b4812', c3: '#b7740c', c4: '#f59e0b', cb: '#0b0f1700', cs: '#e6edf3' },
-  light: { ce: '#eceff3', c1: '#fde8c4', c2: '#f6c46f', c3: '#de8a0d', c4: '#b45309', cb: '#ffffff00', cs: '#111827' },
-};
+// Heatmap scale: tints of the Cordillera emerald combo, so the graph reads like GitHub's own
+// but matches the activity card. The snake itself is the partner cyan.
+const heat = (T) => ({
+  ce: T.card2, c1: mixHex(T.card2, T.accent, 0.3), c2: mixHex(T.card2, T.accent, 0.55), c3: mixHex(T.card2, T.accent, 0.8), c4: T.accent,
+  cb: T.card2 + '00', cs: T.accent2,
+});
 
 export function snakeCards({ dir, days, themes, user }) {
-  for (const [name, T] of Object.entries(themes)) {
+  const out = {};
+  for (const [name, base] of Object.entries(themes)) {
     const src = `${dir}/${name === 'dark' ? 'snake-dark' : 'snake'}.svg`;
     if (!existsSync(src)) { console.log(`skip snake card: ${src} not found`); continue; }
-    writeFileSync(`${dir}/snake-card-${name}.svg`, card(readFileSync(src, 'utf8'), days, T, HEAT[name], user));
+    const T = themed(base, 'cordillera');
+    const raw = readFileSync(src, 'utf8');
+    for (const m of [false, true]) {
+      const key = `${m ? 'm-' : ''}${name}`;
+      out[key] = card(raw, days, T, heat(T), user, m);
+      writeFileSync(`${dir}/snake-card-${key}.svg`, out[key]);
+    }
   }
+  if (out.dark && out.light) writeFileSync(`${dir}/snake-card-split.svg`, splitSvg(out.dark, out.light));
+  if (out['m-dark'] && out['m-light']) writeFileSync(`${dir}/snake-card-m-split.svg`, splitSvg(out['m-dark'], out['m-light']));
 }
 
-function card(raw, days, T, H, user) {
+function card(raw, days, T, H, user, m = false) {
   // --- read the snake SVG: viewBox, inner markup, and the grid geometry.
   const vb = raw.match(/viewBox="([-\d.\s]+)"/)[1].split(/\s+/).map(Number);
   // Crop snk's empty margins (the snake can still move into them: overflow is visible).
@@ -35,8 +45,8 @@ function card(raw, days, T, H, user) {
   const cols = Math.round(Math.max(...cells.map((c) => c[0])) / 16) + 1;
 
   // --- layout: the snake graph scaled into the card.
-  const W = 1200, pad = 44, gx = pad + 40, gw = W - gx - pad, s = gw / vb[2], gy = 176, gh = vb[3] * s;
-  const HH = Math.round(gy + gh + 146);
+  const W = m ? 480 : 1200, pad = m ? 24 : 44, gx = pad + (m ? 0 : 40), gw = W - gx - pad, s = gw / vb[2], gy = m ? 200 : 176, gh = vb[3] * s;
+  const HH = Math.round(gy + gh + (m ? 220 : 146));
   const at = (vx, vy) => [gx + (vx - vb[0]) * s, gy + (vy - vb[1]) * s];
   const cell = (col, row) => at(col * 16, row * 16); // top-left of a cell
   const size = 12 * s;
@@ -91,46 +101,48 @@ function card(raw, days, T, H, user) {
   };
 
   const legend = (() => {
-    const x0 = W - pad - 5 * 18 - 84, y = 70;
+    const x0 = m ? pad : W - pad - 5 * 18 - 84, y = m ? 128 : 70;
     return `<text x="${x0}" y="${y + 11}" class="lab">Less</text>${[H.ce, H.c1, H.c2, H.c3, H.c4].map((c, i) => `<rect x="${x0 + 38 + i * 18}" y="${y}" width="13" height="13" rx="3" fill="${c}"/>`).join('')}<text x="${x0 + 38 + 5 * 18 + 4}" y="${y + 11}" class="lab">More</text>`;
   })();
 
   const stats = [
-    [total.toLocaleString('en'), 'contributions in the last year'],
+    [total.toLocaleString('en'), m ? 'in the last year' : 'contributions in the last year'],
     [String(active), 'active days'],
-    [String(longest), 'longest streak (days)'],
+    [String(longest), m ? 'longest streak' : 'longest streak (days)'],
     [best.count > 0 ? String(best.count) : '0', best.count > 0 ? `best day · ${fmt(best.date)}` : 'best day'],
   ];
-  const statY = gy + gh + 92;
+  const statY = gy + gh + (m ? 84 : 92);
   const statsSvg = stats.map(([v, l], i) => {
     const x = pad + i * ((W - pad * 2) / 4);
+    if (m) { const cx = pad + (i % 2) * ((W - pad * 2) / 2), cy = statY + Math.floor(i / 2) * 76; return `<text x="${cx}" y="${cy}" class="sv"${i === 0 ? ` fill="${T.accent}"` : ''}>${v}</text><text x="${cx}" y="${cy + 24}" class="sl">${esc(l)}</text>`; }
     return `<text x="${x}" y="${statY}" class="sv"${i === 0 ? ` fill="${T.accent}"` : ''}>${v}</text><text x="${x}" y="${statY + 24}" class="sl">${esc(l)}</text>`;
   }).join('');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${HH}" viewBox="0 0 ${W} ${HH}" role="img" aria-labelledby="st sd">
 <title id="st">Contribution graph for ${esc(user)}</title>
 <desc id="sd">An animated snake eats the squares of the contribution graph. ${total} contributions in the last year across ${active} active days. Longest streak ${longest} days. Best day ${best.count > 0 ? `${fmt(best.date)} with ${best.count} contributions` : 'none yet'}.</desc>
-<defs>${dotGrid('sdots', T)}</defs>
+<defs>${dotGrid('sdots', T)}${gradDef('sg', T)}<linearGradient id="scv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.cardTop}"/><stop offset=".55" stop-color="${T.card}"/></linearGradient></defs>
 <style>
   .lab{font:500 13px ${MONO};fill:${T.faint}}
   .eb{font:600 13px ${MONO};letter-spacing:2.2px;fill:${T.muted}}
-  .tt{font:700 30px ${SANS};fill:${T.text};letter-spacing:-.6px}
+  .tt{font:700 ${m ? 26 : 30}px ${SANS};fill:${T.text};letter-spacing:-.6px}
   .tag{font:600 12.5px ${MONO};fill:${T.text}}
   .sv{font:700 30px ${SANS};fill:${T.text};font-variant-numeric:tabular-nums}
-  .sl{font:400 14px ${SANS};fill:${T.muted}}
+  .sl{font:400 ${m ? 16 : 14}px ${SANS};fill:${T.muted}}
   .today{animation:ring 2.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
   @keyframes ring{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(1.25)}}
   .best{animation:fadein 1s ${EASE} 1s backwards}@keyframes fadein{from{opacity:0}}
   .pulse{animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
   ${reducedMotion()}
 </style>
-<rect x=".5" y=".5" width="${W - 1}" height="${HH - 1}" rx="24" fill="${T.card}" stroke="${T.line}"/>
+<rect x=".5" y=".5" width="${W - 1}" height="${HH - 1}" rx="24" fill="url(#scv)" stroke="${T.line}"/>
 <rect x=".5" y=".5" width="${W - 1}" height="${HH - 1}" rx="24" fill="url(#sdots)"/>
 <circle cx="${pad + 5}" cy="${pad + 6}" r="5" fill="${T.ok}" class="pulse"/>
 <text x="${pad + 20}" y="${pad + 11}" class="eb">CONTRIBUTION GRAPH · LAST 12 MONTHS</text>
-<text x="${pad}" y="${pad + 52}" class="tt">Every square is a day of work. <tspan fill="${T.accent}">The snake eats them all.</tspan></text>
+<path d="M24 1.5H${W - 24}" stroke="url(#sg)" stroke-width="3"/>
+${m ? `<text x="${pad}" y="${pad + 50}" class="tt">Every square is a day of work.</text><text x="${pad}" y="${pad + 86}" class="tt" style="fill:${T.accent}">The snake eats them all.</text>` : `<text x="${pad}" y="${pad + 52}" class="tt">Every square is a day of work. <tspan fill="${T.accent}">The snake eats them all.</tspan></text>`}
 ${legend}
-${months}${weekdays}
+${m ? months.replace(/class="lab"/g, 'class="lab" style="font-size:11px"') : months + weekdays}
 <svg x="${gx}" y="${gy}" width="${gw}" height="${gh}" viewBox="${vb.join(' ')}" overflow="visible">${inner}</svg>
 ${ring(bPos, 'best')}${tag(bPos, `best day · ${best.count}`, true)}
 ${ring(tPos, 'today')}${tag(tPos, 'today', false)}

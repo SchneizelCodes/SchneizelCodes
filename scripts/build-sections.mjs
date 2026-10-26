@@ -1,110 +1,185 @@
-// Builds the animated section SVGs: About bento, tech-stack marquee, project cards and contact buttons.
-// Run: node scripts/build-sections.mjs   (no dependencies). Writes to assets/.
+// Builds every README block as animated SVG, in a desktop (1200 wide) and a phone (480 wide)
+// layout, each in dark and light. Run: node scripts/build-sections.mjs  (no dependencies)
+// Output: assets/<block>-<dark|light>.svg and assets/<block>-m-<dark|light>.svg
 //
-// Motion rules (from the Claude motion videos on prompt-motion.com):
-// one idea per element, ease-out with no bounce, seamless loops, varied pace,
-// and a still, readable frame for visitors who prefer reduced motion.
+// Colour rules (vault: ui-ux/Harmonized 60-30-10 color combinations and OKLCH token architecture):
+//  - Each SECTION uses exactly ONE combination (its 60 % canvas, 30 % surface, 10 % accent),
+//    for every card, tile, badge and button inside it. Colours never mix inside a section.
+//    Intro + Contact: Manila Night Market · About: Batanes Breeze · Stack: Boracay Sunset ·
+//    Projects (Tindero included): Tindero Classic · Activity: Cordillera Forest.
+//  - Brand logos and social tiles keep their official colours: that is identity, not decoration.
+//  - Gradients stay in one hue (OKLCH lightness arc, stops 0/40/65/100 %) and only fill
+//    buttons, badges, bars and hairlines. Text is always a solid colour. No glows.
+//  - Accents and button labels pass 4.5:1 in both modes (themed() in lib.mjs).
+// Motion rules (prompt-motion.com): one idea per element, ease-out, seamless loops, and a
+// still readable frame for reduced motion.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { THEMES, SANS, MONO, EASE, ICONS, esc, wrap, textW, brand, lucide, dotGrid, beam, beamCss, reducedMotion } from './lib.mjs';
+import { THEMES, SANS, MONO, EASE, ICONS, esc, wrap, textW, brand, lucide, dotGrid, reducedMotion, themed, gradDef } from './lib.mjs';
 
-const svgOpen = (w, h, title, desc) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="t d"><title id="t">${esc(title)}</title><desc id="d">${esc(desc)}</desc>`;
+const open = (w, h, title, desc, T) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="t d"><title id="t">${esc(title)}</title><desc id="d">${esc(desc)}</desc><rect width="${w}" height="${h}" fill="${T.bg}"/>`;
 
-// ------------------------------------------------------------------ ABOUT (bento)
-const ABOUT = [
-  { key: 'build', eyebrow: 'FLAGSHIP · LIVE', title: 'Tindero', body: 'Shop, eat, sell and send in one Filipino app, live on desktop and mobile.', color: 'accent', icon: 'store' },
-  { key: 'explore', eyebrow: 'EXPLORING', title: 'Private, local AI', body: 'Local LLMs with Ollama, retrieval (RAG) and AI features that respect user data.', color: 'violet', icon: 'bot' },
-  { key: 'care', eyebrow: 'I CARE ABOUT', title: 'Secure by default', body: 'Row-level security, server-side checks, accessibility and tests.', color: 'accent', icon: 'key-round' },
-  { key: 'open', eyebrow: 'OPEN TO', title: 'Roles & collabs', body: 'Full-stack and AI engineering roles, and collaborations.', color: 'amber', icon: 'sparkles' },
-];
+// Vertical canvas: top lifted toward the surface colour, settling into the 60 % canvas.
+const canvasDef = (id, T) => `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${T.cardTop}"/><stop offset=".55" stop-color="${T.card}"/><stop offset="1" stop-color="${T.card}"/></linearGradient>`;
+// A rounded card in its combination: canvas fill, faint dot grid, border, accent hairline on top.
+function cardBox(id, x, y, w, h, r, T, { top = true } = {}) {
+  return `<defs>${dotGrid(`dots-${id}`, T, 20)}${gradDef(`g-${id}`, T)}${canvasDef(`cv-${id}`, T)}<clipPath id="c-${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}"/></clipPath></defs>
+<g clip-path="url(#c-${id})"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#cv-${id})"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#dots-${id})"/>${top ? `<rect x="${x}" y="${y}" width="${w}" height="3" fill="url(#g-${id})"/>` : ''}</g>
+<rect x="${x + 0.5}" y="${y + 0.5}" width="${w - 1}" height="${h - 1}" rx="${r}" fill="none" stroke="${T.line}"/>`;
+}
+const pill = (x, y, label, T, { mono = true, size = 14, h = 30 } = {}) => {
+  const w = textW(label, size, mono) + 24;
+  return { w, svg: `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}" fill="${T.card2}" stroke="${T.line}"/><text x="${x + w / 2}" y="${y + h / 2 + size * 0.36}" text-anchor="middle" font-family="${mono ? MONO : SANS}" font-size="${size}" fill="${T.text}">${esc(label)}</text>` };
+};
+const chips = (list, x, y, maxX, T, size = 14) => {
+  let cx = x, out = '';
+  for (const s of list) { const p = pill(cx, y, s, T, { size }); if (cx + p.w > maxX) break; out += p.svg; cx += p.w + 8; }
+  return out;
+};
+const statusPill = (x, y, label, live, T, size = 14) => {
+  const w = textW(label, size, true) + 44, c = live ? T.ok : T.accent;
+  return `<rect x="${x}" y="${y}" width="${w}" height="32" rx="16" fill="${T.card2}" stroke="${T.line}"/>
+<circle cx="${x + 17}" cy="${y + 16}" r="4.5" fill="${c}" class="ring" style="transform-origin:${x + 17}px ${y + 16}px"/><circle cx="${x + 17}" cy="${y + 16}" r="4.5" fill="${c}" class="pulse"/>
+<text x="${x + 30}" y="${y + 21}" font-family="${MONO}" font-size="${size}" font-weight="600" fill="${T.text}">${esc(label)}</text>`;
+};
+const badge = (x, y, w, h, label, T, id, size = 15) =>
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${Math.min(10, h / 2)}" fill="url(#${id})"/><text x="${x + w / 2}" y="${y + h / 2 + size * 0.36}" text-anchor="middle" font-family="${MONO}" font-size="${size}" font-weight="700" fill="${T.onAccent}">${esc(label)}</text>`;
+const BASE_CSS = `.pulse{animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.ring{animation:ring 2.2s ease-out infinite}@keyframes ring{0%{transform:scale(.6);opacity:.7}100%{transform:scale(2.3);opacity:0}}
+.rise{opacity:0;animation:rise .9s ${EASE} forwards}@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.nudge{animation:nudge 2.6s ${EASE} infinite}@keyframes nudge{0%,60%,100%{transform:none}75%{transform:translate(3px,-3px)}}
+.float{animation:float 8s ease-in-out infinite}@keyframes float{0%,100%{transform:none}50%{transform:translateY(-6px)}}
+${reducedMotion('.rise{opacity:1}.ring{opacity:0}')}`;
 
-function about(T) {
-  const W = 1200, H = 430, G = 16;
-  // Layout: one tall tile on the left, a wide tile and two small tiles on the right.
-  const tiles = [
-    { x: 0, y: 0, w: 440, h: H },
-    { x: 440 + G, y: 0, w: W - 440 - G, h: 196 },
-    { x: 440 + G, y: 196 + G, w: (W - 440 - G - G) / 2, h: H - 196 - G },
-    { x: 440 + G + (W - 440 - G - G) / 2 + G, y: 196 + G, w: (W - 440 - G - G) / 2, h: H - 196 - G },
-  ];
-  const body = ABOUT.map((a, i) => {
-    const t = tiles[i];
-    const c = i === 0 ? T.accent : T.muted;
-    const pad = 28;
-    const lines = wrap(a.body, i === 0 ? 20 : 17, t.w - pad * 2 - (i === 1 ? 150 : 0));
-    const big = i === 0;
-    const delay = 0.15 + i * 0.12;
-    return `<g class="tile" style="animation-delay:${delay}s">
-      <rect x="${t.x + 0.5}" y="${t.y + 0.5}" width="${t.w - 1}" height="${t.h - 1}" rx="22" fill="${T.card}" stroke="${T.line}"/>
-      <rect x="${t.x + 0.5}" y="${t.y + 0.5}" width="${t.w - 1}" height="${t.h - 1}" rx="22" fill="url(#dots)"/>
-      ${i === 0 ? beam(t.x + 0.5, t.y + 0.5, t.w - 1, t.h - 1, 22, [T.accent, 'transparent'], 9, 0, 1.6) : ''}
-      <g transform="translate(${big ? t.x + pad : t.x + t.w - pad - 44} ${t.y + pad})">
-        <rect width="44" height="44" rx="12" fill="${i === 0 ? T.accent : T.card2}" fill-opacity="${i === 0 ? 0.14 : 1}" stroke="${i === 0 ? T.accent : T.line}" stroke-opacity="${i === 0 ? 0.4 : 1}"/>
-        ${lucide(a.icon, 10, 10, 24, i === 0 ? T.accent : T.text)}
-      </g>
-      <g transform="translate(${t.x + pad} ${t.y + pad})">
-        <text x="0" y="${big ? 92 : 14}" class="eyebrow" fill="${c}">${a.eyebrow}</text>
-        <text x="0" y="${big ? 138 : 52}" class="${big ? 'h1' : 'h2'}">${esc(a.title)}</text>
-        ${lines.map((l, j) => `<text x="0" y="${(big ? 182 : 88) + j * (big ? 31 : 26)}" class="${big ? 'p1' : 'p2'}">${esc(l)}</text>`).join('')}
-      </g>
-      ${i === 0 ? tinderoServices(t, T, c) : ''}
-      ${i === 1 ? chatPulse(t, T, T.muted) : ''}
-      ${i === 3 ? `<g transform="translate(${t.x + pad} ${t.y + t.h - 58})"><rect width="124" height="30" rx="15" fill="${T.ok}" fill-opacity=".1" stroke="${T.ok}" stroke-opacity=".4"/><circle cx="18" cy="15" r="4.5" fill="${T.ok}" class="pulse"/><text x="30" y="20" class="pill" fill="${T.ok}">available</text></g>` : ''}
-    </g>`;
-  }).join('');
+// One combination per section (see the colour rules at the top).
+const C = { intro: 'night', about: 'batanes', stack: 'boracay', projects: 'tindero', activity: 'cordillera', contact: 'night' };
 
-  return `${svgOpen(W, H, 'About me', ABOUT.map((a) => `${a.eyebrow}: ${a.title}. ${a.body}`).join(' '))}
-<defs>${dotGrid('dots', T)}</defs>
+// ===================================================================== HERO (Manila Night Market)
+const PHRASES = ['full-stack products', 'AI-powered tools', 'accessible learning apps', 'apps for Filipino users'];
+function hero(B, m) {
+  const T = themed(B, C.intro);
+  const W = m ? 480 : 1200, H = m ? 560 : 420;
+  const cx = m ? 360 : 930, cy = m ? 120 : 210, k = m ? 0.55 : 1;
+  let seed = 7; const r = () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296);
+  const stars = Array.from({ length: m ? 40 : 80 }, () => `<circle cx="${(r() * W).toFixed(1)}" cy="${(r() * H).toFixed(1)}" r="${(r() * 1.1 + 0.5).toFixed(2)}" fill="${T.lineHi}" class="tw" style="animation-duration:${(r() * 4 + 3).toFixed(1)}s;animation-delay:${(-r() * 6).toFixed(1)}s"/>`).join('');
+  // Planets are shades of the one accent (its gradient stops), light inside to deep outside.
+  const orbit = [[0, 62, 3.2, 14, -35], [1, 98, 4.2, 22, 130], [2, 134, 3.6, 32, 245], [3, 170, 4.6, 46, 50]]
+    .map(([c, rad, s, t, a]) => `<circle cx="${cx}" cy="${cy}" r="${rad * k}" fill="none" stroke="${T.line}" stroke-dasharray="3 7"/><g transform="rotate(${a} ${cx} ${cy})"><g class="spin" style="animation-duration:${t}s;transform-origin:${cx}px ${cy}px"><circle cx="${cx + rad * k}" cy="${cy}" r="${s * 2 * Math.max(k, 0.7)}" fill="${T.grad[c].color}"/></g></g>`).join('');
+  const PH = 3, cycle = PHRASES.length * PH, pct = (s) => ((s / cycle) * 100).toFixed(2);
+  const phrases = PHRASES.map((p, i) => `<text x="0" y="0" class="ph" fill="${T.accent}" style="animation-delay:${1.4 + i * PH}s">${esc(p)}</text>`).join('');
+  const name = m ? [['Joshua', 0, 250], ['Manuel', 0, 316], ['Camacho', 0, 382]] : [['Joshua', 64, 190], ['Manuel', 314, 190], ['Camacho', 64, 258]];
+  return `${open(W, H, 'Joshua Manuel Camacho', 'Full-stack engineer and aspiring AI engineer from the Philippines. I build full-stack products, AI-powered tools, accessible learning apps and apps for Filipino users.', B)}
 <style>
-  ${beamCss}
-  .tile{opacity:0;animation:in .9s ${EASE} forwards}
-  @keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-  .eyebrow{font:600 13px ${MONO};letter-spacing:2.2px}
-  .h1{font:700 40px ${SANS};fill:${T.text};letter-spacing:-1px}
-  .h2{font:700 26px ${SANS};fill:${T.text};letter-spacing:-.4px}
-  .p1{font:400 20px ${SANS};fill:${T.muted}}
-  .p2{font:400 17px ${SANS};fill:${T.muted}}
-  .pill{font:600 13px ${MONO}}
-  .pulse{animation:pulse 2s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-  .walk{animation:walk 6s ${EASE} infinite}
-  @keyframes walk{0%,15%{stroke-dashoffset:1}55%,100%{stroke-dashoffset:0}}
-  .svc{opacity:0;animation:svc 4.8s ease-in-out infinite}
-  @keyframes svc{0%,100%{opacity:0}8%,22%{opacity:1}32%{opacity:0}}
-  .unlock{animation:unlock 6s ${EASE} infinite}
-  @keyframes unlock{0%,45%{fill-opacity:0}60%,100%{fill-opacity:1}}
-  .dotty{animation:dotty 1.3s ease-in-out infinite}
-  @keyframes dotty{0%,100%{opacity:.25}50%{opacity:1}}
-  ${reducedMotion('.tile{opacity:1}.beam{opacity:0}.svc{opacity:0}')}
+  .tw{animation:tw ease-in-out infinite alternate}@keyframes tw{from{opacity:.15}to{opacity:.8}}
+  .spin{animation:spin linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+  .w{font:700 ${m ? 60 : 64}px ${SANS};letter-spacing:-1.5px;opacity:0;animation:rise .9s ${EASE} forwards}
+  .ph{font:600 ${m ? 26 : 28}px ${SANS};opacity:0;animation:swap ${cycle}s ${EASE} infinite backwards}
+  @keyframes swap{0%{opacity:0;transform:translateY(14px)}${pct(0.5)}%{opacity:1;transform:none}${pct(PH - 0.4)}%{opacity:1;transform:none}${pct(PH)}%{opacity:0;transform:translateY(-14px)}100%{opacity:0}}
+  ${BASE_CSS}
+  @media (prefers-reduced-motion: reduce){.w,.ph:first-child{opacity:1}}
 </style>
-<rect width="${W}" height="${H}" fill="${T.bg}"/>
-${body}
+${cardBox('hero', 0, 0, W, H, 20, T)}
+${stars}
+<g class="rise" style="animation-delay:.2s">${orbit}<circle cx="${cx}" cy="${cy}" r="${30 * k}" fill="none" stroke="${T.accent}" stroke-opacity=".5"/><circle cx="${cx}" cy="${cy}" r="${18 * k}" fill="url(#g-hero)"/></g>
+<g class="rise" style="animation-delay:.1s"><circle cx="${m ? 40 : 72}" cy="${m ? 192 : 104}" r="5" fill="${T.ok}" class="pulse"/><text x="${m ? 56 : 88}" y="${m ? 198 : 110}" font-family="${MONO}" font-size="${m ? 18 : 17}" fill="${T.muted}">hello, I'm</text></g>
+${name.map(([t, x, y], i) => `<text x="${m ? 40 : x}" y="${y}" class="w" fill="${T.text}" style="animation-delay:${0.25 + i * 0.12}s">${t}</text>`).join('')}
+<g transform="translate(${m ? 40 : 64} ${m ? 448 : 330})"><text x="0" y="0" font-family="${SANS}" font-size="${m ? 26 : 28}" fill="${T.muted}" class="rise" style="animation-delay:.8s">I build</text><g transform="translate(${m ? 0 : 104} ${m ? 38 : 0})">${phrases}</g></g>
+<text x="${m ? 40 : 64}" y="${m ? 528 : 380}" font-family="${MONO}" font-size="${m ? 15 : 16}" fill="${T.muted}" class="rise" style="animation-delay:1.1s">${m ? 'Full-Stack · AI Engineer · Philippines' : 'Full-Stack Engineer  ·  Aspiring AI Engineer  ·  Philippines'}</text>
 </svg>`;
 }
 
-// Mini learning path inside the Kamayo tile.
-// Tindero's four services as chips, lighting up one after another, plus the live address.
-function tinderoServices(t, T, c) {
-  const items = [['store', 'Shop'], ['utensils', 'Eat'], ['tag', 'Sell'], ['package', 'Send']];
-  const y = t.y + t.h - 108, w = 86, gap = 10;
-  return items.map(([icon, label], i) => {
-    const x = t.x + 28 + i * (w + gap);
-    return `<g><rect x="${x}" y="${y}" width="${w}" height="40" rx="12" fill="${T.card2}" stroke="${T.line}"/>
-      <rect x="${x}" y="${y}" width="${w}" height="40" rx="12" fill="${c}" fill-opacity=".14" stroke="${c}" stroke-opacity=".55" class="svc" style="animation-delay:${i * 1.2}s"/>
-      ${lucide(icon, x + 12, y + 11, 18, T.text)}<text x="${x + 38}" y="${y + 25}" class="pill" fill="${T.text}">${label}</text></g>`;
-  }).join('') + `<circle cx="${t.x + 34}" cy="${y + 66}" r="4.5" fill="${T.ok}" class="pulse"/><text x="${t.x + 46}" y="${y + 71}" class="pill" fill="${T.muted}">tinderoph.vercel.app</text>`;
+// ===================================================================== SWITCHER & NAV
+const SWITCH = [
+  { id: 'auto', label: 'Auto', icon: 'sun-moon', combo: C.intro },
+  { id: 'dark', label: 'Dark', icon: 'moon', combo: C.intro },
+  { id: 'split', label: 'Split', icon: 'contrast', combo: C.intro },
+  { id: 'light', label: 'Light', icon: 'sun', combo: C.intro },
+];
+function switchPill(o, on, B, m) {
+  const T = themed(B, o.combo);
+  const W = m ? 44 : 132, H = m ? 44 : 42, fg = on ? T.onAccent : T.text;
+  const shape = m ? `<circle cx="22" cy="22" r="21.25" fill="${on ? 'url(#g)' : T.card}" stroke="${on ? 'none' : T.lineHi}" stroke-width="1.5"/>`
+    : `<rect x=".75" y=".75" width="${W - 1.5}" height="${H - 1.5}" rx="${H / 2}" fill="${on ? 'url(#g)' : T.card}" stroke="${on ? 'none' : T.lineHi}" stroke-width="1.5"/>`;
+  return `${open(W, H, `${o.label} theme`, on ? `${o.label} theme, currently shown` : `Switch to the ${o.label.toLowerCase()} theme`, B)}
+<defs>${gradDef('g', T, 0, 0, 1, 1)}</defs>${shape}
+${m ? lucide(o.icon, 13, 13, 18, on ? fg : T.accent, 2) : `${lucide(o.icon, 20, H / 2 - 9, 18, on ? fg : T.accent, 2)}<text x="48" y="${H / 2 + 5.5}" font-family="${SANS}" font-size="15" font-weight="650" fill="${fg}">${esc(o.label)}</text>${on ? `<circle cx="${W - 20}" cy="${H / 2}" r="4" fill="${fg}"/>` : ''}`}
+</svg>`;
+}
+export const SECTIONS = [
+  { id: 'about', combo: C.about, n: '01', label: 'About', title: 'About me', note: 'What I build and how I work' },
+  { id: 'stack', combo: C.stack, n: '02', label: 'Stack', title: 'Tech stack', note: 'Tools I ship with' },
+  { id: 'projects', combo: C.projects, n: '03', label: 'Projects', title: 'Featured projects', note: 'Selected work · tap a card' },
+  { id: 'activity', combo: C.activity, n: '04', label: 'Activity', title: 'GitHub activity', note: 'Rebuilt from live data every 12 hours' },
+  { id: 'contact', combo: C.contact, n: '05', label: 'Contact', title: 'Let’s work together', note: 'Open to roles and collaborations' },
+];
+function nav(s, B, m) {
+  const T = themed(B, C.intro);
+  const W = m ? 46 : 150, H = 46;
+  return `${open(W, H, s.label, `Jump to ${s.label}`, B)}
+<defs>${gradDef('g', T, 0, 0, 1, 1)}</defs>
+${m ? `<circle cx="23" cy="23" r="22.25" fill="url(#g)"/><text x="23" y="28" text-anchor="middle" font-family="${MONO}" font-size="14" font-weight="700" fill="${T.onAccent}">${s.n}</text>`
+    : `<rect x=".75" y=".75" width="${W - 1.5}" height="${H - 1.5}" rx="${H / 2}" fill="${T.card}" stroke="${T.lineHi}" stroke-width="1.5"/>
+${badge(8, 9, 32, 28, s.n, T, 'g', 12.5)}
+<text x="50" y="${H / 2 + 6}" font-family="${SANS}" font-size="16" font-weight="600" fill="${T.text}">${esc(s.label)}</text>
+<path d="M${W - 26} ${H / 2 - 4}l4 4 4-4" stroke="${T.accent}" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`}
+</svg>`;
+}
+function header(s, B, m) {
+  const T = themed(B, s.combo);
+  const W = m ? 480 : 1200, H = m ? 78 : 92;
+  return `${open(W, H, `${s.n} ${s.title}`, s.note, B)}
+<defs>${gradDef('g', T)}</defs>
+<style>.seg{animation:seg 1.2s ${EASE} .2s backwards;transform-origin:0 0}@keyframes seg{from{transform:scaleX(0)}}${BASE_CSS}</style>
+<g class="rise">${badge(0, m ? 18 : 26, m ? 40 : 42, m ? 32 : 34, s.n, T, 'g', 15)}
+<text x="${m ? 54 : 58}" y="${m ? 45 : 54}" font-family="${SANS}" font-size="${m ? 28 : 34}" font-weight="700" letter-spacing="-.6" fill="${T.text}">${esc(s.title)}</text>
+${m ? '' : `<text x="${W}" y="52" text-anchor="end" font-family="${MONO}" font-size="14" fill="${T.muted}">${esc(s.note)}</text>`}</g>
+<rect x="0" y="${H - 13}" width="${W}" height="1.5" fill="${T.line}"/>
+<rect x="0" y="${H - 14}" width="${m ? 120 : 160}" height="3" rx="1.5" fill="url(#g)" class="seg"/>
+</svg>`;
 }
 
-// "Thinking" chat bubble inside the Exploring tile.
-function chatPulse(t, T, c) {
-  const x = t.x + t.w - 128 - 70, y = t.y + 28;
-  return `<rect x="${x}" y="${y}" width="96" height="40" rx="16" fill="${c}" fill-opacity=".14" stroke="${c}" stroke-opacity=".4"/>
-    ${[0, 1, 2].map((i) => `<circle cx="${x + 30 + i * 18}" cy="${y + 20}" r="4.5" fill="${c}" class="dotty" style="animation-delay:${i * 0.18}s"/>`).join('')}
-    <text x="${x + 2}" y="${y + 62}" class="pill" fill="${T.faint}">runs locally</text>`;
+// ===================================================================== ABOUT
+const ABOUT = [
+  { eyebrow: 'FLAGSHIP · LIVE', title: 'Tindero', body: 'Shop, eat, sell and send in one Filipino app, live on desktop and mobile.', icon: 'store' },
+  { eyebrow: 'EXPLORING', title: 'Private, local AI', body: 'Local LLMs with Ollama, retrieval (RAG) and AI features that respect user data.', icon: 'bot' },
+  { eyebrow: 'I CARE ABOUT', title: 'Secure by default', body: 'Row-level security, server-side checks, accessibility and tests.', icon: 'key-round' },
+  { eyebrow: 'OPEN TO', title: 'Roles & collabs', body: 'Full-stack and AI engineering roles, and collaborations.', icon: 'sparkles' },
+];
+function aboutTile(a, i, t, B, m) {
+  const T = themed(B, C.about), big = i === 0, pad = m ? 26 : 28;
+  const titleSize = big ? 40 : m ? 28 : 26, bodySize = m ? 19 : big ? 20 : 17;
+  const lines = wrap(a.body, bodySize, t.w - pad * 2 - (m ? 0 : i === 1 ? 150 : 0));
+  const iconRight = !big || m;
+  const yE = big && !m ? 92 : 22, yT = big && !m ? 138 : 22 + titleSize + 18, yB = yT + bodySize + 16;
+  let extra = '';
+  if (big) {
+    const items = [['store', 'Shop'], ['utensils', 'Eat'], ['tag', 'Sell'], ['package', 'Send']];
+    const cw = m ? (t.w - pad * 2 - 30) / 4 : 86, y = t.y + t.h - (m ? 96 : 108);
+    extra = items.map(([ic, l], k) => { const x = t.x + pad + k * (cw + 10); return `<rect x="${x}" y="${y}" width="${cw}" height="40" rx="12" fill="${T.card2}" stroke="${T.line}"/><rect x="${x}" y="${y}" width="${cw}" height="40" rx="12" fill="url(#g-a${i})" fill-opacity=".3" class="svc" style="animation-delay:${k * 1.2}s"/>${lucide(ic, x + 12, y + 11, 18, T.text)}<text x="${x + 37}" y="${y + 25}" font-family="${MONO}" font-size="14" fill="${T.text}">${l}</text>`; }).join('')
+      + `<circle cx="${t.x + pad + 6}" cy="${y + 66}" r="4.5" fill="${T.ok}" class="pulse"/><text x="${t.x + pad + 18}" y="${y + 71}" font-family="${MONO}" font-size="14" fill="${T.muted}">tinderoph.vercel.app</text>`;
+  }
+  if (i === 3) extra = `<g transform="translate(${t.x + pad} ${t.y + t.h - 56})"><rect width="124" height="30" rx="15" fill="${T.card2}" stroke="${T.line}"/><circle cx="18" cy="15" r="4.5" fill="${T.ok}" class="pulse"/><text x="30" y="20" font-family="${MONO}" font-size="13" fill="${T.text}">available</text></g>`;
+  if (i === 1 && !m) { const x = t.x + t.w - 198, y = t.y + 28; extra = `<rect x="${x}" y="${y}" width="96" height="40" rx="16" fill="${T.card2}" stroke="${T.line}"/>${[0, 1, 2].map((k) => `<circle cx="${x + 30 + k * 18}" cy="${y + 20}" r="4.5" fill="${T.accent}" class="dotty" style="animation-delay:${k * 0.18}s"/>`).join('')}`; }
+  return `<g class="rise" style="animation-delay:${0.15 + i * 0.1}s">${cardBox(`a${i}`, t.x, t.y, t.w, t.h, 22, T)}
+<g transform="translate(${iconRight ? t.x + t.w - pad - 44 : t.x + pad} ${t.y + pad})"><rect width="44" height="44" rx="12" fill="url(#g-a${i})"/>${lucide(a.icon, 10, 10, 24, T.onAccent)}</g>
+<g transform="translate(${t.x + pad} ${t.y + pad})"><text x="0" y="${yE}" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2.2" fill="${T.accent}">${a.eyebrow}</text>
+<text x="0" y="${yT}" font-family="${SANS}" font-size="${titleSize}" font-weight="700" letter-spacing="-.6" fill="${T.text}">${esc(a.title)}</text>
+${lines.map((l, j) => `<text x="0" y="${yB + j * (bodySize + 10)}" font-family="${SANS}" font-size="${bodySize}" fill="${T.muted}">${esc(l)}</text>`).join('')}</g>${extra}</g>`;
+}
+function about(B, m) {
+  const G = 14;
+  let tiles, W, H;
+  if (m) { W = 480; const hs = [330, 200, 190, 240]; let y = 0; tiles = hs.map((h) => { const t = { x: 0, y, w: W, h }; y += h + G; return t; }); H = y - G; }
+  else { W = 1200; H = 430; tiles = [{ x: 0, y: 0, w: 440, h: H }, { x: 456, y: 0, w: 744, h: 196 }, { x: 456, y: 210, w: 365, h: 220 }, { x: 835, y: 210, w: 365, h: 220 }]; }
+  return `${open(W, H, 'About me', ABOUT.map((a) => `${a.eyebrow}: ${a.title}. ${a.body}`).join(' '), B)}
+<style>${BASE_CSS}.svc{opacity:0;animation:svc 4.8s ease-in-out infinite}@keyframes svc{0%,100%{opacity:0}8%,22%{opacity:1}32%{opacity:0}}
+.dotty{animation:dotty 1.3s ease-in-out infinite}@keyframes dotty{0%,100%{opacity:.25}50%{opacity:1}}@media (prefers-reduced-motion: reduce){.svc{opacity:0}}</style>
+${ABOUT.map((a, i) => aboutTile(a, i, tiles[i], B, m)).join('')}
+</svg>`;
 }
 
-// ------------------------------------------------------------------ TECH STACK (marquee)
+// ===================================================================== STACK
 const STACK = [
   { label: 'Frontend', items: ['typescript', 'javascript', 'react', 'nextdotjs', 'vite', 'tailwindcss', 'threedotjs', 'framer', 'html5', 'css'] },
   { label: 'Backend & data', items: ['nodedotjs', 'supabase', 'postgresql', 'zod', { name: 'WebAuthn', icon: 'key-round' }, { name: 'Row-level security', icon: 'database' }] },
@@ -112,402 +187,227 @@ const STACK = [
   { label: 'AI & quality', items: ['ollama', 'googlegemini', { name: 'RAG / embeddings', icon: 'sparkles' }, 'vitest', 'figma'] },
 ];
 const NICE = { nextdotjs: 'Next.js', threedotjs: 'Three.js', nodedotjs: 'Node.js', googlegemini: 'Gemini API', framer: 'Framer Motion', css: 'CSS', githubactions: 'GitHub Actions', html5: 'HTML5', postgresql: 'PostgreSQL', tailwindcss: 'Tailwind CSS' };
-
-function stack(T) {
-  const W = 1200, ROW = 74, H = STACK.length * ROW + 24, LABEL = 190, VIEW = W - LABEL;
-  const pill = (it, x, y) => {
-    const isBrand = typeof it === 'string';
-    const name = isBrand ? NICE[it] || ICONS_TITLE(it) : it.name;
-    const w = 54 + textW(name, 16);
-    const icon = isBrand ? brand(it, x + 16, y + 13, 22, T) : lucide(it.icon, x + 16, y + 13, 22, T.mono);
-    return { w, svg: `<rect x="${x}" y="${y}" width="${w}" height="48" rx="24" fill="${T.card}" stroke="${T.line}"/>${icon}<text x="${x + 46}" y="${y + 30}" class="name">${esc(name)}</text>` };
-  };
+const nameOf = (it) => (typeof it === 'string' ? NICE[it] || ICONS.brands[it].title : it.name);
+function stack(B, m) {
+  const W = m ? 480 : 1200, fs = m ? 18 : 16, ph = m ? 50 : 48;
+  const rowH = m ? 128 : 74, H = STACK.length * rowH + (m ? 0 : 10);
+  const label = m ? 0 : 200, view = W - label - (m ? 0 : 20);
+  let defs = '', css = '';
   const rows = STACK.map((r, i) => {
-    const y = 12 + i * ROW;
-    // Build one set, repeated until it is wider than the view, then doubled for a seamless loop.
+    const T = themed(B, C.stack), y = 12 + i * rowH;
+    defs += gradDef(`sg${i}`, T);
     let set = [], x = 0;
-    while (x < VIEW + 40) for (const it of r.items) { const p = pill(it, x, 0); set.push(p.svg); x += p.w + 12; }
-    const setW = x;
-    const twice = `<g>${set.join('')}</g><g transform="translate(${setW} 0)">${set.join('')}</g>`;
-    const dur = (setW / 38).toFixed(1); // ~38 px per second: calm, readable
-    const dir = i % 2 ? 'right' : 'left';
-    return `<text x="0" y="${y + 30}" class="cat">${esc(r.label.toUpperCase())}</text>
-      <style>@keyframes r${i}{from{transform:translateX(${dir === 'left' ? 0 : -setW}px)}to{transform:translateX(${dir === 'left' ? -setW : 0}px)}}.r${i}{animation:r${i} ${dur}s linear infinite}</style>
-      <g clip-path="url(#view)" mask="url(#fade)"><g transform="translate(${LABEL} ${y})"><g class="r${i}">${twice}</g></g></g>`;
+    while (x < view + 60) for (const it of r.items) {
+      const n = nameOf(it), w = 56 + textW(n, fs);
+      const icon = typeof it === 'string' ? brand(it, x + 16, (ph - 22) / 2, 22, T) : lucide(it.icon, x + 16, (ph - 22) / 2, 22, T.accent);
+      set.push(`<rect x="${x}" y="0" width="${w}" height="${ph}" rx="${ph / 2}" fill="${T.card2}" stroke="${T.line}"/>${icon}<text x="${x + 46}" y="${ph / 2 + fs * 0.36}" font-family="${SANS}" font-size="${fs}" fill="${T.text}">${esc(n)}</text>`);
+      x += w + 12;
+    }
+    const setW = x, dur = (setW / (m ? 30 : 38)).toFixed(1), left = i % 2 === 0;
+    css += `@keyframes r${i}{from{transform:translateX(${left ? 0 : -setW}px)}to{transform:translateX(${left ? -setW : 0}px)}}.r${i}{animation:r${i} ${dur}s linear infinite}`;
+    const lw = textW(r.label.toUpperCase(), 13, true) + 34;
+    const band = m ? `<rect x="0" y="${y - 6}" width="${W}" height="${rowH - 14}" rx="22" fill="${T.card}" stroke="${T.line}"/>` : `<rect x="0" y="${y - 6}" width="${W}" height="60" rx="30" fill="${T.card}" stroke="${T.line}"/>`;
+    const lab = m ? badge(14, y + 6, lw, 28, r.label.toUpperCase(), T, `sg${i}`, 13) : badge(10, y + 9, lw, 30, r.label.toUpperCase(), T, `sg${i}`, 13);
+    const ty = m ? y + 46 : y;
+    return `${band}${lab}<g clip-path="url(#v${i})" mask="url(#f${i})"><g transform="translate(${m ? 10 : label} ${ty})"><g class="r${i}">${set.join('')}<g transform="translate(${setW} 0)">${set.join('')}</g></g></g></g>`;
   }).join('');
-  const allNames = STACK.map((r) => `${r.label}: ${r.items.map((it) => (typeof it === 'string' ? NICE[it] || ICONS_TITLE(it) : it.name)).join(', ')}`).join('. ');
-
-  return `${svgOpen(W, H, 'Tech stack', allNames)}
-<defs>
-  <clipPath id="view"><rect x="${LABEL}" y="0" width="${VIEW}" height="${H}"/></clipPath>
-  <linearGradient id="fg" x1="0" x2="1"><stop offset="0" stop-color="#000"/><stop offset=".07" stop-color="#fff"/><stop offset=".93" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>
-  <mask id="fade" maskUnits="userSpaceOnUse" x="${LABEL}" y="0" width="${VIEW}" height="${H}"><rect x="${LABEL}" y="0" width="${VIEW}" height="${H}" fill="url(#fg)"/></mask>
-</defs>
-<style>
-  .cat{font:600 13px ${MONO};letter-spacing:2px;fill:${T.muted}}
-  .name{font:500 16px ${SANS};fill:${T.text}}
-  ${reducedMotion()}
-</style>
-<rect width="${W}" height="${H}" fill="${T.bg}"/>
+  const clips = STACK.map((_, i) => {
+    const y = 12 + i * rowH, ty = m ? y + 46 : y, x0 = m ? 10 : label, vw = m ? W - 20 : view;
+    return `<clipPath id="v${i}"><rect x="${x0}" y="${ty - 2}" width="${vw}" height="${ph + 4}"/></clipPath><mask id="f${i}" maskUnits="userSpaceOnUse" x="${x0}" y="${ty - 2}" width="${vw}" height="${ph + 4}"><rect x="${x0}" y="${ty - 2}" width="${vw}" height="${ph + 4}" fill="url(#fade)"/></mask>`;
+  }).join('');
+  return `${open(W, H, 'Tech stack', STACK.map((r) => `${r.label}: ${r.items.map(nameOf).join(', ')}`).join('. '), B)}
+<defs>${defs}<linearGradient id="fade" x1="0" x2="1"><stop offset="0" stop-color="#000"/><stop offset=".07" stop-color="#fff"/><stop offset=".93" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>${clips}</defs>
+<style>${css}${reducedMotion()}</style>
 ${rows}
 </svg>`;
 }
-const ICONS_TITLE = (slug) => ICONS.brands[slug].title;
 
-// ------------------------------------------------------------------ PROJECT CARDS
+// ===================================================================== PROJECTS
 export const PROJECTS = [
-  { id: 'tindero', n: '01', kind: 'FLAGSHIP · MARKETPLACE', title: 'Tindero', color: 'amber', icon: 'shopping-bag',
-    body: 'Verified sellers, food ordering, a pre-loved marketplace and parcel sending in one app, with role-based access, passkey sign-in and ID checks.',
-    stack: ['TypeScript', 'React', 'Next.js', 'Supabase', 'Capacitor', 'WebAuthn'], status: 'Live on desktop and mobile', live: true, cta: 'Visit live site', href: 'https://tinderoph.vercel.app' },
-  { id: 'kamayo', n: '02', kind: 'EDTECH · ACCESSIBILITY', title: 'Kamayo', color: 'green', icon: 'hand',
+  { id: 'kamayo', n: '02', kind: 'EDTECH · ACCESSIBILITY', title: 'Kamayo', icon: 'hand',
     body: 'Interactive Filipino Sign Language learning system with a 100-level path. Server-checked progress, row-level security on every record, and tested database rules.',
-    stack: ['React 19', 'TypeScript', 'Vite', 'Supabase', 'Vitest'], status: 'In development', cta: null, href: null },
-  { id: 'pandeloot', n: '03', kind: 'E-COMMERCE · AI', title: 'PandeLoot', color: 'pink', icon: 'croissant',
+    stack: ['React 19', 'TypeScript', 'Vite', 'Supabase', 'Vitest'], status: 'In development', live: false, cta: null },
+  { id: 'pandeloot', n: '03', kind: 'E-COMMERCE · AI', title: 'PandeLoot', icon: 'croissant',
     body: 'A daily “loot drop” storefront for Filipino bakery treats, with Gemini-powered features, Google sign-in and live drops.',
-    stack: ['Next.js', 'TypeScript', 'Supabase', 'Gemini API'], status: 'Deployed on Vercel', live: true, cta: 'View repo', href: 'https://github.com/SchneizelCodes/PandeLoot' },
-  { id: 'anna', n: '04', kind: 'LOCAL AI · PRIVACY', title: 'Anna', color: 'violet', icon: 'bot',
+    stack: ['Next.js', 'TypeScript', 'Supabase', 'Gemini API'], status: 'Deployed on Vercel', live: true, cta: 'View repo' },
+  { id: 'anna', n: '04', kind: 'LOCAL AI · PRIVACY', title: 'Anna', icon: 'bot',
     body: 'A private AI companion that runs entirely on your PC through Ollama. Indexes only approved folders, remembers only what you allow, and suggests instead of editing.',
-    stack: ['Node.js', 'Ollama', 'RAG', 'Tailscale'], status: 'Runs 100% locally', cta: null, href: null },
-  { id: 'viewer', n: '05', kind: 'DEVELOPER TOOL', title: 'GitHub Profile Viewer', color: 'accent', icon: 'search',
+    stack: ['Node.js', 'Ollama', 'RAG', 'Tailscale'], status: 'Runs 100% locally', live: false, cta: null },
+  { id: 'viewer', n: '05', kind: 'DEVELOPER TOOL', title: 'GitHub Profile Viewer', icon: 'search',
     body: 'Search any GitHub user for live stats, a contribution heatmap with snake animation, top repositories and a language breakdown.',
-    stack: ['React', 'Vite', 'Tailwind CSS', 'GitHub API'], status: 'Live', live: true, cta: 'Open live demo', href: 'https://playful-pudding-f9a7df.netlify.app' },
-  { id: 'portfolio', n: '06', kind: '3D · CREATIVE', title: 'SCHNEIZEL.DEV', color: 'violet', icon: 'orbit',
+    stack: ['React', 'Vite', 'Tailwind CSS', 'GitHub API'], status: 'Live', live: true, cta: 'Open live demo' },
+  { id: 'portfolio', n: '06', kind: '3D · CREATIVE', title: 'SCHNEIZEL.DEV', icon: 'orbit',
     body: 'My portfolio as a 3D solar system: each project is a planet you can fly to, built with React Three Fiber.',
-    stack: ['Next.js', 'React Three Fiber', 'Three.js', 'Zustand'], status: 'Portfolio', cta: 'View repo', href: 'https://github.com/SchneizelCodes/SCHNEIZEL.DEV' },
+    stack: ['Next.js', 'React Three Fiber', 'Three.js', 'Zustand'], status: 'Portfolio', live: false, cta: 'View repo' },
 ];
-
-function card(p, T, i) {
-  const W = 540, H = 350, c = T.accent, pad = 30;
-  const lines = wrap(p.body, 18.5, W - pad * 2 - 6).slice(0, 4);
-  let cx = pad;
-  const chips = p.stack.map((s) => {
-    const w = textW(s, 14, true) + 22;
-    const out = `<rect x="${cx}" y="0" width="${w}" height="30" rx="15" fill="${T.card2}" stroke="${T.line}"/><text x="${cx + w / 2}" y="20" text-anchor="middle" class="chip">${esc(s)}</text>`;
-    cx += w + 7;
-    return out;
-  }).join('');
-  const statusW = textW(p.status, 14, true) + 42;
-  return `${svgOpen(W, H, `${p.title} — ${p.kind.toLowerCase()}`, `${p.body} Built with ${p.stack.join(', ')}. Status: ${p.status}.`)}
-<defs>${dotGrid('dots', T, 20)}
-  <radialGradient id="glow" cx="1" cy="0" r="1"><stop offset="0" stop-color="${c}" stop-opacity=".16"/><stop offset=".6" stop-color="${c}" stop-opacity="0"/></radialGradient>
-</defs>
-<style>
-  ${beamCss}
-  .k{font:600 13px ${MONO};letter-spacing:2px;fill:${T.muted}}
-  .n{font:600 13px ${MONO};letter-spacing:2px;fill:${c}}
-  .title{font:700 34px ${SANS};fill:${T.text};letter-spacing:-.7px}
-  .body{font:400 18.5px ${SANS};fill:${T.muted}}
-  .chip{font:500 14px ${MONO};fill:${T.text}}
-  .st{font:600 14px ${MONO};fill:${T.text}}
-  .cta{font:600 16px ${SANS};fill:${T.text}}
-  .wm{animation:float 9s ease-in-out infinite;transform-origin:${W - 85}px 83px}
-  @keyframes float{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-8px) rotate(4deg)}}
-  .pulse{animation:pulse 2s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-  .ring{animation:ring 2s ease-out infinite;transform-origin:${pad + 16}px ${H - 38}px}
-  @keyframes ring{0%{transform:scale(.6);opacity:.7}100%{transform:scale(2.2);opacity:0}}
-  .arrow{animation:nudge 2.4s ${EASE} infinite}
-  @keyframes nudge{0%,60%,100%{transform:none}75%{transform:translate(3px,-3px)}}
-  .sheen{animation:sheen 7s ease-in-out infinite;animation-delay:${i * 0.9}s}
-  @keyframes sheen{0%,70%{transform:translateX(-260px)}100%{transform:translateX(${W + 60}px)}}
-  ${reducedMotion('.beam,.sheen,.ring{opacity:0}')}
-</style>
-<clipPath id="clip"><rect width="${W}" height="${H}" rx="24"/></clipPath>
-<g clip-path="url(#clip)">
-  <rect width="${W}" height="${H}" fill="${T.card}"/>
-  <rect width="${W}" height="${H}" fill="url(#dots)"/>
-  <rect class="sheen" x="0" y="-40" width="70" height="${H + 80}" fill="#ffffff" fill-opacity="${T.bg === '#ffffff' ? 0.7 : 0.03}" transform="skewX(-18)"/>
-  <g class="wm" opacity=".5">${lucide(p.icon, W - 140, 28, 110, T.lineHi, 1.3)}</g>
-</g>
-<rect x=".5" y=".5" width="${W - 1}" height="${H - 1}" rx="24" fill="none" stroke="${T.line}"/>
-<text x="${pad}" y="${pad + 14}" class="n">${p.n}</text>
-<text x="${pad + 34}" y="${pad + 14}" class="k">${esc(p.kind)}</text>
-<text x="${pad}" y="${pad + 56}" class="title">${esc(p.title)}</text>
-${lines.map((l, j) => `<text x="${pad}" y="${pad + 96 + j * 27}" class="body">${esc(l)}</text>`).join('')}
-<g transform="translate(0 ${H - 108})">${chips}</g>
-<g>
-  <rect x="${pad}" y="${H - 54}" width="${statusW}" height="32" rx="16" fill="${T.card2}" stroke="${T.line}"/>
-  <circle cx="${pad + 16}" cy="${H - 38}" r="4.5" fill="${p.live ? T.ok : c}" class="ring"/>
-  <circle cx="${pad + 16}" cy="${H - 38}" r="4.5" fill="${p.live ? T.ok : c}" class="pulse"/>
-  <text x="${pad + 28}" y="${H - 32}" class="st">${esc(p.status)}</text>
-</g>
-${p.cta ? `<text x="${W - pad - 22}" y="${H - 32}" text-anchor="end" class="cta">${esc(p.cta)}</text><g class="arrow">${lucide('arrow-up-right', W - pad - 18, H - 49, 20, c, 2.2)}</g>` : ''}
+function card(p, B, m) {
+  const T = themed(B, C.projects);
+  const W = m ? 480 : 1200, pad = m ? 28 : 40;
+  const lines = wrap(p.body, 19, m ? W - pad * 2 : 760).slice(0, m ? 5 : 3);
+  const yTitle = pad + (m ? 66 : 62), yBody = yTitle + 40;
+  const H = m ? yBody + lines.length * 29 + 120 : Math.max(300, yBody + lines.length * 29 + 116);
+  const yChips = yBody + lines.length * 29 + (m ? 8 : 10), yStatus = H - (m ? 56 : 58);
+  const wm = m ? lucide(p.icon, W - 104, 22, 76, T.lineHi, 1.4) : lucide(p.icon, W - 230, 44, 170, T.lineHi, 1.3);
+  const ctaW = p.cta ? textW(p.cta, 16) + 64 : 0;
+  return `${open(W, H, `${p.title} — ${p.kind.toLowerCase()}`, `${p.body} Built with ${p.stack.join(', ')}. Status: ${p.status}.`, B)}
+<style>${BASE_CSS}</style>
+${cardBox('k', 0, 0, W, H, 24, T)}
+<g class="float">${wm}</g>
+<text x="${pad}" y="${pad + 14}" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2" fill="${T.muted}">${p.n}</text>
+<text x="${pad + 34}" y="${pad + 14}" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2" fill="${T.accent}">${esc(p.kind)}</text>
+<text x="${pad}" y="${yTitle}" font-family="${SANS}" font-size="${m ? 34 : 38}" font-weight="700" letter-spacing="-.8" fill="${T.text}">${esc(p.title)}</text>
+${lines.map((l, j) => `<text x="${pad}" y="${yBody + j * 29}" font-family="${SANS}" font-size="19" fill="${T.muted}">${esc(l)}</text>`).join('')}
+${chips(p.stack, pad, yChips, W - pad, T, m ? 15 : 14)}
+${statusPill(pad, yStatus, p.status, p.live, T, m ? 15 : 14)}
+${p.cta ? `<rect x="${W - pad - ctaW}" y="${yStatus - 4}" width="${ctaW}" height="40" rx="20" fill="url(#g-k)"/><text x="${W - pad - ctaW + 20}" y="${yStatus + 21}" font-family="${SANS}" font-size="16" font-weight="650" fill="${T.onAccent}">${esc(p.cta)}</text><g class="nudge">${lucide('arrow-up-right', W - pad - 34, yStatus + 7, 18, T.onAccent, 2.4)}</g>` : ''}
 </svg>`;
 }
 
-// ------------------------------------------------------------------ CONTACT
-const BUTTONS = [
-  { id: 'github', label: 'GitHub', icon: 'github' },
-  { id: 'linkedin', label: 'LinkedIn', icon: 'linkedin' },
-  { id: 'email', label: 'Email me', icon: 'mail' },
-  { id: 'portfolio', label: 'Portfolio', icon: 'globe' },
-];
-
-// Buttons: the first is the one solid accent element on the page; the rest are quiet outlines.
-// A slow sheen crosses the primary button so the call to action has a little life.
-function button(b, T, i) {
-  const W = 200, H = 54, primary = i === 0;
-  const fg = primary ? T.onAccent : T.text;
-  return `${svgOpen(W, H, b.label, `${b.label} button`)}
-<defs><clipPath id="c"><rect width="${W}" height="${H}" rx="${H / 2}"/></clipPath>
-  <linearGradient id="sh" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
-<style>.sheen{animation:sh 5s ease-in-out infinite}@keyframes sh{0%,65%{transform:translateX(-120px)}100%{transform:translateX(${W + 40}px)}}${reducedMotion('.sheen{opacity:0}')}</style>
-<g clip-path="url(#c)">
-  <rect width="${W}" height="${H}" fill="${primary ? T.accent : T.card}"/>
-  ${primary ? `<rect class="sheen" x="0" y="0" width="80" height="${H}" fill="url(#sh)"/>` : ''}
-</g>
-${primary ? '' : `<rect x=".75" y=".75" width="${W - 1.5}" height="${H - 1.5}" rx="${H / 2}" fill="none" stroke="${T.lineHi}" stroke-width="1.5"/>`}
-${lucide(b.icon, 26, H / 2 - 11, 22, fg)}
-<text x="${W / 2 + 14}" y="${H / 2 + 6}" text-anchor="middle" font-family="${SANS}" font-size="17" font-weight="650" fill="${fg}">${esc(b.label)}</text>
-</svg>`;
-}
-
-// Section navigation pills under the header: "01 Projects" style, number in the accent.
-// Numbered in page order, matching the section headers.
-export const SECTIONS = [
-  { id: 'about', n: '01', label: 'About', title: 'About me', note: 'What I build and how I work' },
-  { id: 'stack', n: '02', label: 'Stack', title: 'Tech stack', note: 'Tools I ship with' },
-  { id: 'projects', n: '03', label: 'Projects', title: 'Featured projects', note: 'Selected work · click a card' },
-  { id: 'activity', n: '04', label: 'Activity', title: 'GitHub activity', note: 'Rebuilt from live data every 12 hours' },
-  { id: 'contact', n: '05', label: 'Contact', title: 'Let’s work together', note: 'Open to roles and collaborations' },
-];
-const NAV = SECTIONS;
-function nav(item, T) {
-  const W = 150, H = 46;
-  return `${svgOpen(W, H, item.label, `Jump to ${item.label}`)}
-<rect x=".75" y=".75" width="${W - 1.5}" height="${H - 1.5}" rx="${H / 2}" fill="${T.card}" stroke="${T.line}" stroke-width="1.5"/>
-<text x="20" y="${H / 2 + 5}" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="1" fill="${T.accent}">${item.n}</text>
-<text x="50" y="${H / 2 + 6}" font-family="${SANS}" font-size="16" font-weight="600" fill="${T.text}">${esc(item.label)}</text>
-<path d="M${W - 26} ${H / 2 - 4}l4 4 4-4" stroke="${T.faint}" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`;
-}
-
-// Section header in the same style as the cards: amber number, title, quiet note, and a
-// hairline whose amber segment slides in. Replaces GitHub's own "## heading" rule.
-function header(sec, T) {
-  const W = 1200, H = 92;
-  return `${svgOpen(W, H, `${sec.n} ${sec.title}`, sec.note)}
-<style>
-  .seg{animation:seg 1.2s ${EASE} .2s backwards}@keyframes seg{from{transform:scaleX(0)}}
-  .t{opacity:0;animation:in .8s ${EASE} forwards}@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-  ${reducedMotion('.t{opacity:1}')}
-</style>
-<g class="t">
-  <text x="0" y="52" font-family="${MONO}" font-size="16" font-weight="600" letter-spacing="2" fill="${T.accent}">${sec.n}</text>
-  <text x="44" y="54" font-family="${SANS}" font-size="34" font-weight="700" letter-spacing="-.7" fill="${T.text}">${esc(sec.title)}</text>
-  <text x="${W}" y="52" text-anchor="end" font-family="${MONO}" font-size="14" fill="${T.muted}">${esc(sec.note)}</text>
-</g>
-<rect x="0" y="${H - 14}" width="${W}" height="1.5" fill="${T.line}"/>
-<rect x="0" y="${H - 14.5}" width="72" height="2.5" rx="1.25" fill="${T.accent}" class="seg" style="transform-origin:0 0"/>
-</svg>`;
-}
-
-// Contact card: text on the left, the call-to-action button drawn on the right, so the
-// whole block is one tight, clickable card instead of a banner plus a separate button.
-function cta(T) {
-  const W = 1200, H = 176, pad = 44, bw = 300, bh = 60, bx = W - pad - bw, by = (H - bh) / 2;
-  return `${svgOpen(W, H, 'Let’s build something people use', 'Available for work. Full-stack and AI engineering roles and collaborations. Philippines, remote-friendly. Connect on LinkedIn.')}
-<defs>${dotGrid('dots', T)}
-  <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(${bx + bw / 2} ${H / 2}) scale(320 160)"><stop offset="0" stop-color="${T.accent}" stop-opacity=".12"/><stop offset="1" stop-color="${T.accent}" stop-opacity="0"/></radialGradient>
-  <clipPath id="bc"><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${bh / 2}"/></clipPath>
-  <linearGradient id="sh" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-</defs>
-<style>
-  .h{font:700 38px ${SANS};fill:${T.text};letter-spacing:-1px}
-  .s{font:400 18px ${SANS};fill:${T.muted}}
-  .pill{font:600 13px ${MONO};fill:${T.ok};letter-spacing:1px}
-  .pulse{animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-  .word{opacity:0;animation:in .9s ${EASE} forwards}
-  @keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-  .sheen{animation:sh 5s ease-in-out infinite}@keyframes sh{0%,65%{transform:translateX(-120px)}100%{transform:translateX(${bw + 60}px)}}
-  .arrow{animation:nudge 2.4s ${EASE} infinite}@keyframes nudge{0%,60%,100%{transform:none}75%{transform:translate(3px,-3px)}}
-  ${reducedMotion('.word{opacity:1}.sheen{opacity:0}')}
-</style>
-${(() => { const t = topShape(W, H, 24); return `<path d="${t.fill}" fill="${T.card}"/><path d="${t.fill}" fill="url(#dots)"/><path d="${t.fill}" fill="url(#glow)"/><path d="${t.edge}" fill="none" stroke="${T.line}"/>`; })()}
-<g transform="translate(${pad} 34)"><rect width="196" height="28" rx="14" fill="${T.ok}" fill-opacity=".1" stroke="${T.ok}" stroke-opacity=".4"/>
-  <circle cx="18" cy="14" r="4.5" fill="${T.ok}" class="pulse"/><text x="32" y="19" class="pill">AVAILABLE FOR WORK</text></g>
-<text x="${pad}" y="106" class="h">${['Let’s', 'build', 'something', 'people', 'use.'].map((w, i) => `<tspan class="word" style="animation-delay:${0.15 + i * 0.09}s"${i === 4 ? ` fill="${T.accent}"` : ''}>${w} </tspan>`).join('')}</text>
-<text x="${pad}" y="140" class="s">Full-stack and AI engineering roles · Philippines · remote-friendly</text>
-<g clip-path="url(#bc)"><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="${T.accent}"/><rect class="sheen" x="${bx}" y="${by}" width="80" height="${bh}" fill="url(#sh)"/></g>
-${lucide('linkedin', bx + 30, by + bh / 2 - 12, 24, T.onAccent)}
-<text x="${bx + 66}" y="${by + bh / 2 + 6}" font-family="${SANS}" font-size="18" font-weight="650" fill="${T.onAccent}">Connect on LinkedIn</text>
-<g class="arrow">${lucide('arrow-up-right', bx + bw - 44, by + bh / 2 - 10, 20, T.onAccent, 2.4)}</g>
-</svg>`;
-}
-
-// ---- Sliced cards ---------------------------------------------------------------
-// GitHub links a whole image, so a card with several buttons is built from slices:
-// a top piece (rounded top corners, open at the bottom) and a footer row of one slice per
-// button (rounded bottom corners on the outer slices), placed edge to edge in the README.
-// A hairline divider is drawn at the top of the footer so any small gap GitHub leaves
-// between the rows reads as the same divider.
+// ===================================================================== TINDERO FEATURE + FOOTER SLICES
+const TINDERO = { body: 'Verified sellers, food ordering, a pre-loved marketplace and parcel sending in one app, with role-based access, passkey sign-in and ID checks.', stack: ['TypeScript', 'React', 'Next.js', 'Supabase', 'Capacitor', 'WebAuthn'], status: 'Live on desktop and mobile' };
 function topShape(W, H, r) {
-  const fill = `M0 ${H}V${r}A${r} ${r} 0 0 1 ${r} 0H${W - r}A${r} ${r} 0 0 1 ${W} ${r}V${H}Z`;
-  const edge = `M.5 ${H}V${r}A${r - 0.5} ${r - 0.5} 0 0 1 ${r} .5H${W - r}A${r - 0.5} ${r - 0.5} 0 0 1 ${W - 0.5} ${r}V${H}`;
-  return { fill, edge };
+  return { fill: `M0 ${H}V${r}A${r} ${r} 0 0 1 ${r} 0H${W - r}A${r} ${r} 0 0 1 ${W} ${r}V${H}Z`, edge: `M.5 ${H}V${r}A${r - 0.5} ${r - 0.5} 0 0 1 ${r} .5H${W - r}A${r - 0.5} ${r - 0.5} 0 0 1 ${W - 0.5} ${r}V${H}` };
 }
 function footShape(W, H, r, first, last) {
   const rl = first ? r : 0, rr = last ? r : 0;
-  const fill = `M0 0H${W}V${H - rr}${rr ? `A${rr} ${rr} 0 0 1 ${W - rr} ${H}` : ''}H${rl}${rl ? `A${rl} ${rl} 0 0 1 0 ${H - rl}` : `H0`}Z`;
-  const edge = `${last ? `M${W - 0.5} 0V${H - rr}${rr ? `A${rr - 0.5} ${rr - 0.5} 0 0 1 ${W - rr} ${H - 0.5}` : ''}` : `M${W} ${H - 0.5}`}H${rl}${first ? (rl ? `A${rl - 0.5} ${rl - 0.5} 0 0 1 .5 ${H - rl}V0` : 'V0') : ''}`;
-  return { fill, edge };
+  return {
+    fill: `M0 0H${W}V${H - rr}${rr ? `A${rr} ${rr} 0 0 1 ${W - rr} ${H}` : ''}H${rl}${rl ? `A${rl} ${rl} 0 0 1 0 ${H - rl}` : 'H0'}Z`,
+    edge: `${last ? `M${W - 0.5} 0V${H - rr}${rr ? `A${rr - 0.5} ${rr - 0.5} 0 0 1 ${W - rr} ${H - 0.5}` : ''}` : `M${W} ${H - 0.5}`}H${rl}${first ? (rl ? `A${rl - 0.5} ${rl - 0.5} 0 0 1 .5 ${H - rl}V0` : 'V0') : ''}`,
+  };
 }
-// One footer slice: card background, divider, an optional cell separator, and content.
-function footSlice({ W, H, r, i, n, T, title, desc, body }) {
+const topCard = (W, H, r, T) => { const t = topShape(W, H, r); return `<defs>${dotGrid('dt', T, 20)}${gradDef('gt', T)}${canvasDef('cvt', T)}<clipPath id="tc"><path d="${t.fill}"/></clipPath></defs><path d="${t.fill}" fill="url(#cvt)"/><path d="${t.fill}" fill="url(#dt)"/><rect width="${W}" height="3" fill="url(#gt)" clip-path="url(#tc)"/><path d="${t.edge}" fill="none" stroke="${T.line}"/>`; };
+function screen(x, y, w, h, cols, s, T, cid) {
+  const g = 10 * s, tw = (w - g * (cols + 1)) / cols, th = tw * 1.05;
+  let tiles = '';
+  for (let r = 0; r < 3; r++) for (let k = 0; k < cols; k++) {
+    const tx = x + g + k * (tw + g), ty = y + 64 * s + r * (th + g);
+    if (ty + th > y + h) continue;
+    tiles += `<g class="tile" style="animation-delay:${(r * cols + k) * 0.25}s"><rect x="${tx}" y="${ty}" width="${tw}" height="${th}" rx="${6 * s}" fill="${T.card2}"/><rect x="${tx}" y="${ty}" width="${tw}" height="${th * 0.62}" rx="${6 * s}" fill="${(r + k) % 3 === 0 ? T.accent : T.lineHi}" fill-opacity="${(r + k) % 3 === 0 ? 0.35 : 0.6}"/><rect x="${tx + 6 * s}" y="${ty + th * 0.7}" width="${tw * 0.6}" height="${5 * s}" rx="${2.5 * s}" fill="${T.muted}" fill-opacity=".5"/><rect x="${tx + 6 * s}" y="${ty + th * 0.84}" width="${tw * 0.35}" height="${5 * s}" rx="${2.5 * s}" fill="${T.accent}"/></g>`;
+  }
+  return `<clipPath id="${cid}"><rect x="${x}" y="${y + 60 * s}" width="${w}" height="${h - 60 * s}"/></clipPath>
+<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${T.bg}"/><rect x="${x}" y="${y}" width="${w}" height="${26 * s}" fill="${T.card2}"/><rect x="${x + g}" y="${y + 8 * s}" width="${30 * s}" height="${10 * s}" rx="${3 * s}" fill="${T.accent}"/>
+<rect x="${x + g}" y="${y + 34 * s}" width="${w - g * 2}" height="${20 * s}" rx="${10 * s}" fill="${T.card2}" stroke="${T.line}"/><g clip-path="url(#${cid})"><g class="scroll">${tiles}</g></g>`;
+}
+function feature(B, m) {
+  const T = themed(B, C.projects);
+  const W = m ? 480 : 1200, pad = m ? 28 : 44;
+  const lines = wrap(TINDERO.body, 19, m ? W - pad * 2 : 580).slice(0, m ? 5 : 3);
+  const yBody = pad + (m ? 160 : 140), yChips = yBody + lines.length * 28 + (m ? 4 : 18);
+  const yStatus = yChips + (m ? 2 : 1) * 40 + 6;
+  const H = m ? yStatus + 52 + 300 : 380;
+  const dx = m ? 34 : 690, dy = m ? yStatus + 76 : 58, dw = m ? 300 : 420, dh = m ? 200 : 262;
+  const px = m ? 330 : 1040, py = m ? yStatus + 98 : 110, pw = m ? 112 : 118, ph = m ? 200 : 236;
+  const chipSvg = m ? chips(TINDERO.stack.slice(0, 3), pad, yChips, W - pad, T, 15) + chips(TINDERO.stack.slice(3), pad, yChips + 40, W - pad, T, 15) : chips(TINDERO.stack, pad, yChips, 660, T, 14);
+  return `${open(W, H, 'Tindero — flagship project', `${TINDERO.body} ${TINDERO.status} at tinderoph.vercel.app.`, B)}
+<style>${BASE_CSS}.tile{animation:tile 9s ${EASE} infinite backwards}@keyframes tile{0%{opacity:0;transform:translateY(8px)}6%,90%{opacity:1;transform:none}100%{opacity:0}}
+.scroll{animation:scroll 9s ease-in-out infinite}@keyframes scroll{0%,40%{transform:none}55%,85%{transform:translateY(-40px)}100%{transform:none}}${reducedMotion('.tile{opacity:1}')}</style>
+${topCard(W, H, 26, T)}
+<text x="${pad}" y="${pad + 14}" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2" fill="${T.accent}">01 · FLAGSHIP · MARKETPLACE</text>
+<text x="${pad}" y="${pad + 66}" font-family="${SANS}" font-size="${m ? 44 : 46}" font-weight="700" letter-spacing="-1.2" fill="${T.text}">Tindero</text>
+<text x="${pad}" y="${pad + 102}" font-family="${SANS}" font-size="${m ? 20 : 21}" font-weight="600" fill="${T.text}">${m ? 'Shop, eat, sell and send in' : 'Shop, eat, sell and send in one Filipino app.'}</text>
+${m ? `<text x="${pad}" y="${pad + 128}" font-family="${SANS}" font-size="20" font-weight="600" fill="${T.text}">one Filipino app.</text>` : ''}
+${lines.map((l, j) => `<text x="${pad}" y="${yBody + j * 28}" font-family="${SANS}" font-size="19" fill="${T.muted}">${esc(l)}</text>`).join('')}
+${chipSvg}${statusPill(pad, yStatus, TINDERO.status, true, T)}
+<g class="float"><rect x="${dx - 10}" y="${dy - 10}" width="${dw + 20}" height="${dh + 34}" rx="16" fill="${T.card2}" stroke="${T.lineHi}"/>
+${[4, 16, 28].map((o) => `<circle cx="${dx + o}" cy="${dy + 2}" r="3.5" fill="${T.lineHi}"/>`).join('')}
+<rect x="${dx + dw / 2 - 90}" y="${dy - 4}" width="180" height="14" rx="7" fill="${T.bg}"/><text x="${dx + dw / 2}" y="${dy + 7}" text-anchor="middle" font-family="${MONO}" font-size="12" fill="${T.muted}">tinderoph.vercel.app</text>
+${screen(dx, dy + 16, dw, dh, m ? 3 : 4, m ? 0.8 : 1, T, 'sd')}</g>
+<g class="float" style="animation-delay:-3s"><rect x="${px - 7}" y="${py - 7}" width="${pw + 14}" height="${ph + 14}" rx="22" fill="${T.card2}" stroke="${T.lineHi}"/>
+<clipPath id="phone"><rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="16"/></clipPath><g clip-path="url(#phone)">${screen(px, py, pw, ph, 2, 0.62, T, 'sp')}</g></g>
+</svg>`;
+}
+function footSlice({ W, H, r, i, n, T, B, title, desc, body, defs = '' }) {
   const f = footShape(W, H, r, i === 0, i === n - 1);
-  return `${svgOpen(W, H, title, desc)}
-<defs>${dotGrid('dots', T, 20)}</defs>
-<path d="${f.fill}" fill="${T.card}"/><path d="${f.fill}" fill="url(#dots)"/>
-<path d="${f.edge}" fill="none" stroke="${T.line}"/>
+  return `${open(W, H, title, desc, B)}
+<defs>${dotGrid('dots', T, 20)}${defs}</defs>
+<path d="${f.fill}" fill="${T.card}"/><path d="${f.fill}" fill="url(#dots)"/><path d="${f.edge}" fill="none" stroke="${T.line}"/>
 <line x1="${i === 0 ? 24 : 0}" y1=".5" x2="${i === n - 1 ? W - 24 : W}" y2=".5" stroke="${T.line}"/>
-${i < n - 1 ? `<line x1="${W - 0.5}" y1="18" x2="${W - 0.5}" y2="${H - 18}" stroke="${T.line}"/>` : ''}
+${i < n - 1 ? `<line x1="${W - 0.5}" y1="16" x2="${W - 0.5}" y2="${H - 16}" stroke="${T.line}"/>` : ''}
 ${body}
 </svg>`;
 }
-
-// Featured Tindero card: copy on the left, a desktop and a phone showing the app on the right.
-function tinderoFeature(T) {
-  const W = 1200, H = 380, pad = 44, c = T.accent;
-  const p = PROJECTS[0];
-  const lines = wrap(p.body, 19, 580).slice(0, 3);
-  let cx = pad;
-  const chips = p.stack.map((s) => { const w = textW(s, 14, true) + 22; const o = `<rect x="${cx}" y="0" width="${w}" height="30" rx="15" fill="${T.card2}" stroke="${T.line}"/><text x="${cx + w / 2}" y="20" text-anchor="middle" class="chip">${esc(s)}</text>`; cx += w + 7; return o; }).join('');
-  // Stylised screens (no copied UI): header bar, search, service row and product tiles.
-  const screen = (x, y, w, h, cols, scale) => {
-    const g = 10 * scale, tw = (w - g * (cols + 1)) / cols, th = tw * 1.05;
-    let tiles = '';
-    for (let r = 0; r < 3; r++) for (let k = 0; k < cols; k++) {
-      const tx = x + g + k * (tw + g), ty = y + 64 * scale + r * (th + g);
-      if (ty + th > y + h) continue;
-      tiles += `<g class="tile" style="animation-delay:${(r * cols + k) * 0.25}s"><rect x="${tx}" y="${ty}" width="${tw}" height="${th}" rx="${6 * scale}" fill="${T.card2}"/><rect x="${tx}" y="${ty}" width="${tw}" height="${th * 0.62}" rx="${6 * scale}" fill="${(r + k) % 3 === 0 ? c : T.lineHi}" fill-opacity="${(r + k) % 3 === 0 ? 0.28 : 0.6}"/><rect x="${tx + 6 * scale}" y="${ty + th * 0.7}" width="${tw * 0.6}" height="${5 * scale}" rx="${2.5 * scale}" fill="${T.muted}" fill-opacity=".5"/><rect x="${tx + 6 * scale}" y="${ty + th * 0.84}" width="${tw * 0.35}" height="${5 * scale}" rx="${2.5 * scale}" fill="${c}"/></g>`;
-    }
-    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${T.bg}"/>
-      <rect x="${x}" y="${y}" width="${w}" height="${26 * scale}" fill="${T.card2}"/>
-      <rect x="${x + g}" y="${y + 8 * scale}" width="${30 * scale}" height="${10 * scale}" rx="${3 * scale}" fill="${c}"/>
-      <rect x="${x + g}" y="${y + 34 * scale}" width="${w - g * 2}" height="${20 * scale}" rx="${10 * scale}" fill="${T.card2}" stroke="${T.line}"/>
-      <g clip-path="url(#clip-${Math.round(x)})"><g class="scroll">${tiles}</g></g>
-      <clipPath id="clip-${Math.round(x)}"><rect x="${x}" y="${y + 60 * scale}" width="${w}" height="${h - 60 * scale}"/></clipPath>`;
-  };
-  const dx = 690, dy = 58, dw = 420, dh = 262;
-  const px = 1040, py = 110, pw = 118, ph = 236;
-  return `${svgOpen(W, H, 'Tindero — flagship project', `${p.body} Built with ${p.stack.join(', ')}. ${p.status} at tinderoph.vercel.app.`)}
-<defs>${dotGrid('dots', T, 20)}
-  <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(${dx + dw / 2} ${H / 2}) scale(420 260)"><stop offset="0" stop-color="${c}" stop-opacity=".12"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>
-</defs>
-<style>
-  ${beamCss}
-  .k{font:600 13px ${MONO};letter-spacing:2px;fill:${c}}
-  .title{font:700 46px ${SANS};fill:${T.text};letter-spacing:-1.2px}
-  .tag{font:600 21px ${SANS};fill:${T.text}}
-  .body{font:400 19px ${SANS};fill:${T.muted}}
-  .chip{font:500 14px ${MONO};fill:${T.text}}
-  .st{font:600 14px ${MONO};fill:${T.text}}
-  .url{font:500 12px ${MONO};fill:${T.muted}}
-  .tile{animation:tile 9s ${EASE} infinite backwards}
-  @keyframes tile{0%{opacity:0;transform:translateY(8px)}6%,90%{opacity:1;transform:none}100%{opacity:0}}
-  .scroll{animation:scroll 9s ease-in-out infinite}
-  @keyframes scroll{0%,40%{transform:none}55%,85%{transform:translateY(-40px)}100%{transform:none}}
-  .pulse{animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-  .ring{animation:ring 2s ease-out infinite;transform-box:fill-box;transform-origin:center}
-  @keyframes ring{0%{transform:scale(.6);opacity:.7}100%{transform:scale(2.4);opacity:0}}
-  .float{animation:float 7s ease-in-out infinite}@keyframes float{0%,100%{transform:none}50%{transform:translateY(-6px)}}
-  ${reducedMotion('.tile{opacity:1}.beam,.ring{opacity:0}')}
-</style>
-${(() => { const t = topShape(W, H, 26); return `<path d="${t.fill}" fill="${T.card}"/><path d="${t.fill}" fill="url(#dots)"/><path d="${t.fill}" fill="url(#glow)"/><path d="${t.edge}" fill="none" stroke="${T.line}"/>`; })()}
-<text x="${pad}" y="${pad + 14}" class="k">01 · ${esc(p.kind)}</text>
-<text x="${pad}" y="${pad + 66}" class="title">Tindero</text>
-<text x="${pad}" y="${pad + 102}" class="tag">Shop, eat, sell and send in one Filipino app.</text>
-${lines.map((l, j) => `<text x="${pad}" y="${pad + 140 + j * 28}" class="body">${esc(l)}</text>`).join('')}
-<g transform="translate(0 ${H - 104})">${chips}</g>
-<g transform="translate(${pad} ${H - 56})"><rect width="${textW(p.status, 14, true) + 44}" height="32" rx="16" fill="${T.card2}" stroke="${T.line}"/>
-  <circle cx="17" cy="16" r="4.5" fill="${T.ok}" class="ring"/><circle cx="17" cy="16" r="4.5" fill="${T.ok}" class="pulse"/><text x="30" y="21" class="st">${esc(p.status)}</text></g>
-<g class="float">
-  <rect x="${dx - 10}" y="${dy - 10}" width="${dw + 20}" height="${dh + 34}" rx="16" fill="${T.card2}" stroke="${T.lineHi}"/>
-  <circle cx="${dx + 4}" cy="${dy + 2}" r="3.5" fill="${T.lineHi}"/><circle cx="${dx + 16}" cy="${dy + 2}" r="3.5" fill="${T.lineHi}"/><circle cx="${dx + 28}" cy="${dy + 2}" r="3.5" fill="${T.lineHi}"/>
-  <rect x="${dx + 120}" y="${dy - 4}" width="180" height="14" rx="7" fill="${T.bg}"/><text x="${dx + 210}" y="${dy + 7}" text-anchor="middle" class="url">tinderoph.vercel.app</text>
-  ${screen(dx, dy + 16, dw, dh, 4, 1)}
-</g>
-<g class="float" style="animation-delay:-3s">
-  <rect x="${px - 7}" y="${py - 7}" width="${pw + 14}" height="${ph + 14}" rx="22" fill="${T.card2}" stroke="${T.lineHi}"/>
-  <g clip-path="url(#phone)">${screen(px, py, pw, ph, 2, 0.62)}</g>
-  <clipPath id="phone"><rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="16"/></clipPath>
-</g>
-</svg>`;
-}
-
-// Small link pill: one primary (accent fill) or quiet outline, with a brand or outline icon.
-function linkPill(o, T) {
-  const H = 52, w = Math.round(textW(o.label, 17) + 118), fg = o.primary ? T.onAccent : T.text;
-  const icon = o.brand ? brand(o.brand, 22, H / 2 - 11, 22, T) : lucide(o.icon, 22, H / 2 - 11, 22, o.primary ? fg : (o.iconColor || T.text));
-  return `${svgOpen(w, H, o.label, o.label)}
-<rect x=".75" y=".75" width="${w - 1.5}" height="${H - 1.5}" rx="${H / 2}" fill="${o.primary ? T.accent : T.card}" stroke="${o.primary ? T.accent : T.lineHi}" stroke-width="1.5"/>
-${icon}
-<text x="56" y="${H / 2 + 6}" font-family="${SANS}" font-size="17" font-weight="650" fill="${fg}">${esc(o.label)}</text>
-${lucide('arrow-up-right', w - 36, H / 2 - 9, 18, o.primary ? fg : T.faint, 2.2)}
-</svg>`;
-}
 const LINKS = [
-  { id: 'tindero-site', label: 'Visit live site', icon: 'globe', primary: true },
-  { id: 'tindero-fb', label: 'Tindero on Facebook', brand: 'facebook' },
-  { id: 'tindero-repo', label: 'View repo', icon: 'github' },
+  { id: 'tindero-site', label: 'Visit live site', short: 'Live site', icon: 'globe', primary: true },
+  { id: 'tindero-fb', label: 'Tindero on Facebook', short: 'Facebook', brand: 'facebook' },
+  { id: 'tindero-repo', label: 'View repo', short: 'Repo', icon: 'github' },
 ];
+function linkSlice(o, i, B, m) {
+  const T = themed(B, C.projects), K = T, n = LINKS.length;
+  const W = m ? 160 : 400, H = m ? 132 : 96;
+  const fg = o.primary ? K.onAccent : B.text;
+  if (m) {
+    const icon = o.brand ? brand(o.brand, W / 2 - 13, 24, 26, K) : lucide(o.icon, W / 2 - 13, 24, 26, o.primary ? K.onAccent : K.accent, 2);
+    return footSlice({ W, H, r: 26, i, n, T, B, title: o.label, desc: o.label, defs: gradDef('b', K), body: `
+<circle cx="${W / 2}" cy="37" r="27" fill="${o.primary ? 'url(#b)' : K.card2}" stroke="${o.primary ? 'none' : K.lineHi}" stroke-width="1.5"/>${icon}
+<text x="${W / 2}" y="94" text-anchor="middle" font-family="${SANS}" font-size="20" font-weight="650" fill="${B.text}">${esc(o.short)}</text>
+${lucide('arrow-up-right', W / 2 - 8, 104, 16, K.accent, 2.2)}` });
+  }
+  const bh = 52, bw = 300, bx = (W - bw) / 2, by = (H - bh) / 2 - 2;
+  const icon = o.brand ? brand(o.brand, bx + 22, by + bh / 2 - 11, 22, K) : lucide(o.icon, bx + 22, by + bh / 2 - 11, 22, o.primary ? fg : K.accent);
+  return footSlice({ W, H, r: 26, i, n, T, B, title: o.label, desc: o.label, defs: gradDef('b', K), body: `
+<rect x="${bx + 0.75}" y="${by + 0.75}" width="${bw - 1.5}" height="${bh - 1.5}" rx="${bh / 2}" fill="${o.primary ? 'url(#b)' : K.card2}" stroke="${o.primary ? 'none' : K.lineHi}" stroke-width="1.5"/>
+${icon}<text x="${bx + 58}" y="${by + bh / 2 + 6}" font-family="${SANS}" font-size="17" font-weight="650" fill="${fg}">${esc(o.label)}</text>
+${lucide('arrow-up-right', bx + bw - 38, by + bh / 2 - 9, 18, o.primary ? fg : K.accent, 2.2)}` });
+}
 
-// Social buttons for the Connect row: brand icon, network name and handle.
-const SOCIALS = [
-  { id: 'linkedin', name: 'LinkedIn', handle: 'Joshua M. Camacho', icon: 'linkedin', color: '#0A66C2' },
-  { id: 'instagram', name: 'Instagram', handle: '@schneizel_jmnl', brand: 'instagram' },
-  { id: 'tiktok', name: 'TikTok', handle: '@jmnl_inc', brand: 'tiktok' },
-  { id: 'facebook', name: 'Facebook', handle: 'Joshua M. Camacho', brand: 'facebook' },
-];
-function social(o, T) {
-  const W = 260, H = 72;
-  const icon = o.brand ? brand(o.brand, 22, 22, 28, T) : lucide(o.icon, 22, 22, 28, T.bg === '#ffffff' ? o.color : '#4D9DE0', 2);
-  return `${svgOpen(W, H, `${o.name}: ${o.handle}`, `${o.name} profile ${o.handle}`)}
-<rect x=".75" y=".75" width="${W - 1.5}" height="${H - 1.5}" rx="18" fill="${T.card}" stroke="${T.line}" stroke-width="1.5"/>
-<rect x="12" y="12" width="48" height="48" rx="13" fill="${T.card2}"/>
-${icon}
-<text x="76" y="32" font-family="${SANS}" font-size="17" font-weight="650" fill="${T.text}">${esc(o.name)}</text>
-<text x="76" y="53" font-family="${MONO}" font-size="12.5" fill="${T.muted}">${esc(o.handle.length > 20 ? o.handle.slice(0, 19) + '…' : o.handle)}</text>
-${lucide('arrow-up-right', W - 36, H / 2 - 9, 18, T.faint, 2.2)}
+// ===================================================================== CONTACT
+function cta(B, m) {
+  const T = themed(B, C.contact);
+  const W = m ? 480 : 1200, H = m ? 300 : 176, pad = m ? 28 : 44;
+  const bw = m ? W - pad * 2 : 300, bh = 60, bx = m ? pad : W - pad - bw, by = m ? 212 : (H - bh) / 2;
+  const words = ['Let’s', 'build', 'something', 'people', 'use.'];
+  const line = (ws, off, y) => `<text x="${pad}" y="${y}" font-family="${SANS}" font-size="${m ? 36 : 38}" font-weight="700" letter-spacing="-1">${ws.map((w, k) => `<tspan class="rise" style="animation-delay:${0.15 + (off + k) * 0.09}s" fill="${w === 'use.' ? T.accent : T.text}">${w} </tspan>`).join('')}</text>`;
+  return `${open(W, H, 'Let’s build something people use', 'Available for work. Full-stack and AI engineering roles and collaborations. Philippines, remote-friendly. Connect on LinkedIn.', B)}
+<defs><clipPath id="bc"><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${bh / 2}"/></clipPath>
+<linearGradient id="sh" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+<style>${BASE_CSS}.sheen{animation:sh 5s ease-in-out infinite}@keyframes sh{0%,65%{transform:translateX(-120px)}100%{transform:translateX(${bw + 60}px)}}${reducedMotion('.sheen{opacity:0}')}</style>
+${topCard(W, H, 24, T)}
+<g transform="translate(${pad} ${m ? 30 : 34})"><rect width="196" height="28" rx="14" fill="${T.card2}" stroke="${T.line}"/><circle cx="18" cy="14" r="4.5" fill="${T.ok}" class="pulse"/><text x="32" y="19" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="1" fill="${T.text}">AVAILABLE FOR WORK</text></g>
+${m ? line(words.slice(0, 2), 0, 104) + line(words.slice(2), 2, 148) : line(words, 0, 106)}
+<text x="${pad}" y="${m ? 184 : 140}" font-family="${SANS}" font-size="18" fill="${T.muted}">${m ? 'Full-stack &amp; AI roles · Philippines · remote' : 'Full-stack and AI engineering roles · Philippines · remote-friendly'}</text>
+<g clip-path="url(#bc)"><rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="url(#gt)"/><rect class="sheen" x="${bx}" y="${by}" width="80" height="${bh}" fill="url(#sh)"/></g>
+${lucide('linkedin', bx + (m ? bw / 2 - 124 : 30), by + bh / 2 - 12, 24, T.onAccent)}
+<text x="${bx + (m ? bw / 2 - 88 : 66)}" y="${by + bh / 2 + 6}" font-family="${SANS}" font-size="18" font-weight="650" fill="${T.onAccent}">Connect on LinkedIn</text>
+<g class="nudge">${lucide('arrow-up-right', bx + (m ? bw / 2 + 102 : bw - 44), by + bh / 2 - 10, 20, T.onAccent, 2.4)}</g>
 </svg>`;
 }
-
-// Tindero footer: three slices, each holding one button centred in its cell.
-function linkSlice(o, T, i, n) {
-  const W = 1200 / n, H = 96, bh = 52, bw = 300, bx = (W - bw) / 2, by = (H - bh) / 2 - 2;
-  const fg = o.primary ? T.onAccent : T.text;
-  const icon = o.brand ? brand(o.brand, bx + 22, by + bh / 2 - 11, 22, T) : lucide(o.icon, bx + 22, by + bh / 2 - 11, 22, fg);
-  return footSlice({ W, H, r: 26, i, n, T, title: o.label, desc: o.label, body: `
-<rect x="${bx + 0.75}" y="${by + 0.75}" width="${bw - 1.5}" height="${bh - 1.5}" rx="${bh / 2}" fill="${o.primary ? T.accent : T.card2}" stroke="${o.primary ? T.accent : T.lineHi}" stroke-width="1.5"/>
-${icon}
-<text x="${bx + 58}" y="${by + bh / 2 + 6}" font-family="${SANS}" font-size="17" font-weight="650" fill="${fg}">${esc(o.label)}</text>
-${lucide('arrow-up-right', bx + bw - 38, by + bh / 2 - 9, 18, o.primary ? fg : T.faint, 2.2)}` });
+const SOCIALS = [
+  { id: 'linkedin', name: 'LinkedIn', handle: 'Joshua M. Camacho', tile: ['#0A66C2'] },
+  { id: 'instagram', name: 'Instagram', handle: '@schneizel_jmnl', tile: ['#FEDA75', '#D62976', '#4F5BD5'], brand: 'instagram' },
+  { id: 'tiktok', name: 'TikTok', handle: '@jmnl_inc', tile: ['#111111'], brand: 'tiktok' },
+  { id: 'facebook', name: 'Facebook', handle: 'Joshua M. Camacho', tile: ['#0866FF'], brand: 'facebook' },
+];
+// Brand tiles use each network's own official colours; that is their identity, not decoration.
+function socialSlice(o, i, B, m) {
+  const T = themed(B, C.contact), n = SOCIALS.length;
+  const W = m ? 120 : 300, H = m ? 132 : 104, s = m ? 52 : 48, x = m ? (W - s) / 2 : 26, y = m ? 20 : 26;
+  const tile = `<linearGradient id="tile" x1="0" y1="1" x2="1" y2="0">${o.tile.map((c, k) => `<stop offset="${o.tile.length > 1 ? k / (o.tile.length - 1) : 0}" stop-color="${c}"/>`).join('')}</linearGradient>`;
+  const g = (s - 24) / 2;
+  const glyph = o.id === 'linkedin' ? lucide('linkedin', x + g, y + g, 24, '#ffffff', 2)
+    : o.id === 'tiktok' ? `<path transform="translate(${x + g + 1.5} ${y + g})" d="${ICONS.brands.tiktok.path}" fill="#25F4EE"/><path transform="translate(${x + g - 1.5} ${y + g})" d="${ICONS.brands.tiktok.path}" fill="#FE2C55"/><path transform="translate(${x + g} ${y + g})" d="${ICONS.brands.tiktok.path}" fill="#ffffff"/>`
+      : `<path transform="translate(${x + g} ${y + g})" d="${ICONS.brands[o.brand].path}" fill="#ffffff"/>`;
+  const text = m ? `<text x="${W / 2}" y="${y + s + 32}" text-anchor="middle" font-family="${SANS}" font-size="17" font-weight="650" fill="${T.text}">${esc(o.name)}</text>`
+    : `<text x="${x + 64}" y="${y + 20}" font-family="${SANS}" font-size="18" font-weight="650" fill="${T.text}">${esc(o.name)}</text><text x="${x + 64}" y="${y + 42}" font-family="${MONO}" font-size="13" fill="${T.muted}">${esc(o.handle)}</text>${lucide('arrow-up-right', W - 44, y + 15, 18, T.accent, 2.2)}`;
+  return footSlice({ W, H, r: 24, i, n, T, B, title: `${o.name}: ${o.handle}`, desc: `${o.name} profile ${o.handle}`, defs: tile, body: `<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="14" fill="url(#tile)"/>${glyph}${text}` });
 }
 
-// Contact footer: four slices, one per social profile.
-function socialSlice(o, T, i, n) {
-  const W = 1200 / n, H = 104, x = 26, y = 26;
-  const icon = o.brand ? brand(o.brand, x + 11, y + 11, 26, T) : lucide(o.icon, x + 11, y + 11, 26, T.bg === '#ffffff' ? o.color : '#4D9DE0', 2);
-  return footSlice({ W, H, r: 24, i, n, T, title: `${o.name}: ${o.handle}`, desc: `${o.name} profile ${o.handle}`, body: `
-<rect x="${x}" y="${y}" width="48" height="48" rx="13" fill="${T.card2}" stroke="${T.line}"/>
-${icon}
-<text x="${x + 64}" y="${y + 20}" font-family="${SANS}" font-size="18" font-weight="650" fill="${T.text}">${esc(o.name)}</text>
-<text x="${x + 64}" y="${y + 42}" font-family="${MONO}" font-size="13" fill="${T.muted}">${esc(o.handle)}</text>
-${lucide('arrow-up-right', W - 44, y + 15, 18, T.faint, 2.2)}` });
-}
-
-// ------------------------------------------------------------------ WRITE
+// ===================================================================== WRITE
 mkdirSync('assets', { recursive: true });
-for (const [name, T] of Object.entries(THEMES)) {
-  writeFileSync(`assets/about-${name}.svg`, about(T));
-  writeFileSync(`assets/stack-${name}.svg`, stack(T));
-  PROJECTS.forEach((p, i) => writeFileSync(`assets/card-${p.id}-${name}.svg`, card(p, T, i)));
-  BUTTONS.forEach((b, i) => writeFileSync(`assets/btn-${b.id}-${name}.svg`, button(b, T, i)));
-  writeFileSync(`assets/cta-${name}.svg`, cta(T));
-  writeFileSync(`assets/feature-tindero-${name}.svg`, tinderoFeature(T));
-  LINKS.forEach((o, i) => writeFileSync(`assets/link-${o.id}-${name}.svg`, linkSlice(o, T, i, LINKS.length)));
-  SOCIALS.forEach((o, i) => writeFileSync(`assets/social-${o.id}-${name}.svg`, socialSlice(o, T, i, SOCIALS.length)));
-  NAV.forEach((n) => writeFileSync(`assets/nav-${n.id}-${name}.svg`, nav(n, T)));
-  SECTIONS.forEach((sec) => writeFileSync(`assets/h-${sec.id}-${name}.svg`, header(sec, T)));
+let count = 0;
+const put = (name, svg) => { writeFileSync(`assets/${name}.svg`, svg); count++; };
+for (const [theme, B] of Object.entries(THEMES)) {
+  for (const m of [false, true]) {
+    const sfx = `${m ? '-m' : ''}-${theme}`;
+    put(`hero${sfx}`, hero(B, m));
+    SWITCH.forEach((o) => ['on', 'off'].forEach((st) => put(`sw-${o.id}-${st}${sfx}`, switchPill(o, st === 'on', B, m))));
+    SECTIONS.forEach((s) => { put(`nav-${s.id}${sfx}`, nav(s, B, m)); put(`h-${s.id}${sfx}`, header(s, B, m)); });
+    put(`about${sfx}`, about(B, m));
+    put(`stack${sfx}`, stack(B, m));
+    put(`feature-tindero${sfx}`, feature(B, m));
+    LINKS.forEach((o, i) => put(`link-${o.id}${sfx}`, linkSlice(o, i, B, m)));
+    PROJECTS.forEach((p) => put(`card-${p.id}${sfx}`, card(p, B, m)));
+    put(`cta${sfx}`, cta(B, m));
+    SOCIALS.forEach((o, i) => put(`social-${o.id}${sfx}`, socialSlice(o, i, B, m)));
+  }
 }
-console.log('Section SVGs written to assets/');
+console.log(`${count} SVGs written to assets/`);

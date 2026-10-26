@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="132" height="42" viewBox="0 0 132 42" role="img" aria-labelledby="t d"><title id="t">Split theme</title><desc id="d">Split theme, currently shown</desc><rect width="132" height="42" fill="#ffffff"/>
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#febc67"/><stop offset="0.4" stop-color="#f09d19"/><stop offset="0.65" stop-color="#e49100"/><stop offset="1" stop-color="#d98a14"/></linearGradient></defs><rect x=".75" y=".75" width="130.5" height="40.5" rx="21" fill="url(#g)" stroke="none" stroke-width="1.5"/>
+<g transform="translate(20 12) scale(0.75)" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" />
+  <path d="M12 18a6 6 0 0 0 0-12v12z" /></g><text x="48" y="26.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="15" font-weight="650" fill="#111827">Split</text><circle cx="112" cy="21" r="4" fill="#111827"/>
+</svg>

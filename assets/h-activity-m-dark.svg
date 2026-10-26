@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="78" viewBox="0 0 480 78" role="img" aria-labelledby="t d"><title id="t">04 GitHub activity</title><desc id="d">Rebuilt from live data every 12 hours</desc><rect width="480" height="78" fill="#0b0f17"/>
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0.6"><stop offset="0" stop-color="#5ecc91"/><stop offset="0.4" stop-color="#02b77c"/><stop offset="0.65" stop-color="#13a979"/><stop offset="1" stop-color="#00a078"/></linearGradient></defs>
+<style>.seg{animation:seg 1.2s cubic-bezier(.22,1,.36,1) .2s backwards;transform-origin:0 0}@keyframes seg{from{transform:scaleX(0)}}.pulse{animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.ring{animation:ring 2.2s ease-out infinite}@keyframes ring{0%{transform:scale(.6);opacity:.7}100%{transform:scale(2.3);opacity:0}}
+.rise{opacity:0;animation:rise .9s cubic-bezier(.22,1,.36,1) forwards}@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.nudge{animation:nudge 2.6s cubic-bezier(.22,1,.36,1) infinite}@keyframes nudge{0%,60%,100%{transform:none}75%{transform:translate(3px,-3px)}}
+.float{animation:float 8s ease-in-out infinite}@keyframes float{0%,100%{transform:none}50%{transform:translateY(-6px)}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important}.rise{opacity:1}.ring{opacity:0}}</style>
+<g class="rise"><rect x="0" y="18" width="40" height="32" rx="10" fill="url(#g)"/><text x="20" y="39.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="15" font-weight="700" fill="#111827">04</text>
+<text x="54" y="45" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="-.6" fill="#e6edf3">GitHub activity</text>
+</g>
+<rect x="0" y="65" width="480" height="1.5" fill="#164633"/>
+<rect x="0" y="64" width="120" height="3" rx="1.5" fill="url(#g)" class="seg"/>
+</svg>

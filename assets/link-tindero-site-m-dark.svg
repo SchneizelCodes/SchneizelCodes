@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="132" viewBox="0 0 160 132" role="img" aria-labelledby="t d"><title id="t">Visit live site</title><desc id="d">Visit live site</desc><rect width="160" height="132" fill="#0b0f17"/>
+<defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.3" fill="#0e1f22"/></pattern><linearGradient id="b" x1="0" y1="0" x2="1" y2="0.6"><stop offset="0" stop-color="#60bcbf"/><stop offset="0.4" stop-color="#25a6ae"/><stop offset="0.65" stop-color="#139aa5"/><stop offset="1" stop-color="#308f9c"/></linearGradient></defs>
+<path d="M0 0H160V132H26A26 26 0 0 1 0 106Z" fill="#0A1517"/><path d="M0 0H160V132H26A26 26 0 0 1 0 106Z" fill="url(#dots)"/><path d="M160 131.5H26A25.5 25.5 0 0 1 .5 106V0" fill="none" stroke="#18373c"/>
+<line x1="24" y1=".5" x2="160" y2=".5" stroke="#18373c"/>
+<line x1="159.5" y1="16" x2="159.5" y2="116" stroke="#18373c"/>
+
+<circle cx="80" cy="37" r="27" fill="url(#b)" stroke="none" stroke-width="1.5"/><g transform="translate(67 24) scale(1.0833333333333333)" fill="none" stroke="#111827" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" />
+  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+  <path d="M2 12h20" /></g>
+<text x="80" y="94" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="20" font-weight="650" fill="#e6edf3">Live site</text>
+<g transform="translate(72 104) scale(0.6666666666666666)" fill="none" stroke="#0f8e97" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10" />
+  <path d="M7 17 17 7" /></g>
+</svg>
