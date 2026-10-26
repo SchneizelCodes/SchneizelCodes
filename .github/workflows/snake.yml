@@ -14,7 +14,10 @@ jobs:
       - uses: Platane/snk/svg-only@v3
         with:
           github_user_name: ${{ github.repository_owner }}
-          outputs: dist/snake.svg
+          # A light and a dark version, so the snake matches each visitor's GitHub theme.
+          outputs: |
+            dist/snake.svg
+            dist/snake-dark.svg?palette=github-dark&color_snake=#a78bfa
 
       - uses: crazy-max/ghaction-github-pages@v3
         with:
