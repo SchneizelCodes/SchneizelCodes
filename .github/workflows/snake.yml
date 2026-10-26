@@ -1,4 +1,4 @@
-name: Generate Snake and Activity Card
+name: Generate Snake and Activity Cards
 
 on:
   schedule:
@@ -11,6 +11,7 @@ on:
       - ".github/workflows/snake.yml"
       - "scripts/build-activity.mjs"
       - "scripts/lib.mjs"
+      - "scripts/build-snake-card.mjs"
 
 jobs:
   generate:
@@ -24,21 +25,22 @@ jobs:
         with:
           node-version: 24
 
-      # Animated activity card from real contribution data (dist/activity-dark.svg, dist/activity-light.svg).
+      - uses: Platane/snk/svg-only@v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          # A light and a dark version, so the snake matches each visitor's GitHub theme.
+          outputs: |
+            dist/snake.svg?color_snake=#b45309
+            dist/snake-dark.svg?palette=github-dark&color_snake=#f59e0b
+
+      # Activity card and the snake spotlight card, from real contribution data.
+      # Runs after snk so it can frame dist/snake*.svg into dist/snake-card-*.svg.
       # Uses ACTIVITY_TOKEN if you add one (to count private contributions), otherwise the default token.
       - name: Build activity card
         env:
           GITHUB_TOKEN: ${{ secrets.ACTIVITY_TOKEN || secrets.GITHUB_TOKEN }}
           GH_USER: ${{ github.repository_owner }}
         run: node scripts/build-activity.mjs --out dist
-
-      - uses: Platane/snk/svg-only@v3
-        with:
-          github_user_name: ${{ github.repository_owner }}
-          # A light and a dark version, so the snake matches each visitor's GitHub theme.
-          outputs: |
-            dist/snake.svg
-            dist/snake-dark.svg?palette=github-dark&color_snake=#a78bfa
 
       # Publish dist/ to the "output" branch with plain git.
       - name: Publish to the output branch
