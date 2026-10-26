@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: "0 */12 * * *"
   workflow_dispatch:
+  # Also regenerate as soon as this workflow is changed and pushed.
+  push:
+    branches: [main]
+    paths: [".github/workflows/snake.yml"]
 
 jobs:
   generate:
@@ -19,9 +23,15 @@ jobs:
             dist/snake.svg
             dist/snake-dark.svg?palette=github-dark&color_snake=#a78bfa
 
-      - uses: crazy-max/ghaction-github-pages@v3
-        with:
-          target_branch: output
-          build_dir: dist
+      # Publish dist/ to the "output" branch with plain git (no extra action, so no Node 20 warning).
+      - name: Publish to the output branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp -r dist "$RUNNER_TEMP/out" && cd "$RUNNER_TEMP/out"
+          git init -q -b output
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Update snake animation"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" output
