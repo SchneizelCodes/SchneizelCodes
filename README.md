@@ -5,13 +5,15 @@
 </picture>
 
 <p align="center">
-  <a href="#featured-projects"><b>Projects</b></a> ·
-  <a href="#tech-stack"><b>Stack</b></a> ·
-  <a href="#github-activity"><b>Activity</b></a> ·
-  <a href="#lets-work-together"><b>Contact</b></a>
+  <a href="#about"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/nav-about-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/nav-about-light.svg"><img alt="About" src="assets/nav-about-dark.svg" height="38"></picture></a>
+  <a href="#stack"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/nav-stack-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/nav-stack-light.svg"><img alt="Tech" src="assets/nav-stack-dark.svg" height="38"></picture></a>
+  <a href="#projects"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/nav-projects-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/nav-projects-light.svg"><img alt="Featured" src="assets/nav-projects-dark.svg" height="38"></picture></a>
+  <a href="#activity"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/nav-activity-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/nav-activity-light.svg"><img alt="GitHub" src="assets/nav-activity-dark.svg" height="38"></picture></a>
+  <a href="#contact"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/nav-contact-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/nav-contact-light.svg"><img alt="Let’s" src="assets/nav-contact-dark.svg" height="38"></picture></a>
 </p>
 
-## About me
+<a name="about"></a>
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-about-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/h-about-light.svg"><img alt="01 About me" src="assets/h-about-dark.svg" width="100%"></picture>
 
 I'm a full-stack engineer from the Philippines who likes building things people actually use, from a marketplace with mobile apps to a sign-language learning system. I work mostly in **TypeScript, React and Next.js** with **Supabase/PostgreSQL**, and I'm growing into **AI engineering**: local models, retrieval and agents that stay private by design.
 
@@ -21,7 +23,8 @@ I'm a full-stack engineer from the Philippines who likes building things people 
     <img alt="Building now: Kamayo, an interactive Filipino Sign Language learning system. Exploring: private, local AI with Ollama and retrieval. I care about: security by default, accessibility and tests. Open to: full-stack and AI engineering roles and collaborations." src="assets/about-dark.svg" width="100%">
   </picture>
 
-## Tech stack
+<a name="stack"></a>
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-stack-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/h-stack-light.svg"><img alt="02 Tech stack" src="assets/h-stack-dark.svg" width="100%"></picture>
 
 <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/stack-dark.svg">
@@ -29,7 +32,8 @@ I'm a full-stack engineer from the Philippines who likes building things people 
     <img alt="Frontend: TypeScript, JavaScript, React, Next.js, Vite, Tailwind CSS, Three.js, Framer Motion, HTML5, CSS. Backend and data: Node.js, Supabase, PostgreSQL, Zod, WebAuthn, row-level security. Mobile and shipping: Capacitor, Vercel, Netlify, GitHub Actions, Git, GitHub. AI and quality: Ollama, Gemini API, RAG and embeddings, Vitest, Figma." src="assets/stack-dark.svg" width="100%">
   </picture>
 
-## Featured projects
+<a name="projects"></a>
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-projects-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/h-projects-light.svg"><img alt="03 Featured projects" src="assets/h-projects-dark.svg" width="100%"></picture>
 
 <p align="center">
   <a href="https://github.com/SchneizelCodes/Tindero"><picture>
@@ -70,7 +74,8 @@ I'm a full-stack engineer from the Philippines who likes building things people 
   </picture></a>
 </p>
 
-## GitHub activity
+<a name="activity"></a>
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-activity-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/h-activity-light.svg"><img alt="04 GitHub activity" src="assets/h-activity-dark.svg" width="100%"></picture>
 
 <p align="center">
   <picture>
@@ -81,26 +86,18 @@ I'm a full-stack engineer from the Philippines who likes building things people 
 </p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/SchneizelCodes/SchneizelCodes/output/snake-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/SchneizelCodes/SchneizelCodes/output/snake.svg">
-    <img alt="Animated snake eating the squares of my GitHub contribution graph for the past year" src="https://raw.githubusercontent.com/SchneizelCodes/SchneizelCodes/output/snake.svg" width="100%">
-  </picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/SchneizelCodes/SchneizelCodes/output/snake-card-dark.svg"><source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/SchneizelCodes/SchneizelCodes/output/snake-card-light.svg"><img alt="Animated snake eating my contribution graph for the last 12 months, with today and my best day marked, plus last-year totals." src="https://raw.githubusercontent.com/SchneizelCodes/SchneizelCodes/output/snake-card-dark.svg" width="100%"></picture>
 </p>
 
-## Let's work together
+<a name="contact"></a>
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-contact-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/h-contact-light.svg"><img alt="05 Let’s work together" src="assets/h-contact-dark.svg" width="100%"></picture>
 
-<picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/cta-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/cta-light.svg">
-    <img alt="Available for work. Let’s build something people use. Full-stack and AI engineering roles and collaborations, Philippines, remote-friendly." src="assets/cta-dark.svg" width="100%">
-  </picture>
+<a href="https://github.com/SchneizelCodes"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/cta-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/cta-light.svg"><img alt="Available for work. Let’s build something people use. Full-stack and AI engineering roles, Philippines, remote-friendly. Say hello on GitHub." src="assets/cta-dark.svg" width="100%"></picture></a>
 
+<!-- To add more ways to reach you: fill in the links, then delete this line and the closing arrow line below.
 <p align="center">
-  <a href="https://github.com/SchneizelCodes"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/btn-github-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/btn-github-light.svg"><img alt="GitHub" src="assets/btn-github-dark.svg" height="48"></picture></a>
-  <!-- To show these: fill in your links, then delete this line and the closing arrow line below.
   <a href="https://www.linkedin.com/in/YOUR-HANDLE"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/btn-linkedin-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/btn-linkedin-light.svg"><img alt="LinkedIn" src="assets/btn-linkedin-dark.svg" height="48"></picture></a>
   <a href="mailto:YOU@EXAMPLE.COM"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/btn-email-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/btn-email-light.svg"><img alt="Email me" src="assets/btn-email-dark.svg" height="48"></picture></a>
   <a href="https://YOUR-PORTFOLIO-URL"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/btn-portfolio-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/btn-portfolio-light.svg"><img alt="Portfolio" src="assets/btn-portfolio-dark.svg" height="48"></picture></a>
-  -->
 </p>
+-->

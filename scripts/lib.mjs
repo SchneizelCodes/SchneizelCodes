@@ -3,18 +3,24 @@
 // monospace eyebrows, pill tags) and ui.live (gradient-ring buttons, bento cards).
 import { readFileSync } from 'node:fs';
 
+// Palette: "Manila Night Market" 60-30-10 combination from the vault
+// (ui-ux/Harmonized 60-30-10 color combinations and OKLCH token architecture).
+//   60% canvas  — midnight slate (dark) / white (light)
+//   30% surface — elevated cards, chips and borders
+//   10% accent  — amber gold, the only colour. Light mode uses a deeper amber for 5:1 contrast.
+// `ok` is GitHub's green, used only to mean "live" or "available".
 export const THEMES = {
   dark: {
-    bg: '#0d1117', card: '#10161d', card2: '#151c24', line: '#232c36', lineHi: '#34404d',
-    text: '#e6edf3', muted: '#8b949e', faint: '#5b6673', dot: '#1f2832',
-    accent: '#2dd4bf', violet: '#a78bfa', pink: '#e879f9', amber: '#f59e0b', green: '#4ade80',
-    mono: '#e6edf3', // colour used for black brand logos (Next.js, Vercel…)
+    bg: '#0b0f17', card: '#0f1520', card2: '#151e2e', line: '#1f2a3c', lineHi: '#2c3a50',
+    text: '#e6edf3', muted: '#8b949e', faint: '#5b6673', dot: '#172133',
+    accent: '#f59e0b', accentSoft: '#f59e0b', ok: '#3fb950', onAccent: '#111827',
+    mono: '#c9d1d9',
   },
   light: {
-    bg: '#ffffff', card: '#f8fafb', card2: '#f1f4f7', line: '#dfe5eb', lineHi: '#c5ced8',
-    text: '#1f2328', muted: '#59636e', faint: '#8c959f', dot: '#e3e8ee',
-    accent: '#0f766e', violet: '#6d28d9', pink: '#a21caf', amber: '#b45309', green: '#15803d',
-    mono: '#1f2328',
+    bg: '#ffffff', card: '#fbfaf7', card2: '#f3f4f6', line: '#e2e6eb', lineHi: '#cfd5dd',
+    text: '#111827', muted: '#59636e', faint: '#8c959f', dot: '#e7eaee',
+    accent: '#b45309', accentSoft: '#d97706', ok: '#1a7f37', onAccent: '#ffffff',
+    mono: '#374151',
   },
 };
 
@@ -47,11 +53,23 @@ export function wrap(text, size, width) {
 
 // A brand logo (Simple Icons, 24x24 viewBox) at (x, y) with the given size.
 export function brand(slug, x, y, size, T) {
+  // Brand logos keep their real colours (owner preference, 2026-10-26). Black logos
+  // (Next.js, Vercel, GitHub…) use the neutral text tone so they stay visible in dark mode.
   const b = ICONS.brands[slug];
-  const dark = ['000000', '181717'].includes(b.hex);
-  const fill = dark ? T.mono : `#${b.hex}`;
+  let fill = ['000000', '181717'].includes(b.hex) ? T.mono : `#${b.hex}`;
+  // In dark mode, lift very dark brand colours (CSS purple, Framer blue…) toward white
+  // until they reach 3:1 against the card, keeping their hue.
+  if (T.bg !== '#ffffff') for (let k = 0; k < 10 && contrast(fill, T.card) < 3; k++) fill = mix(fill, '#ffffff', 0.15);
   return `<path transform="translate(${x} ${y}) scale(${size / 24})" d="${b.path}" fill="${fill}"/>`;
 }
+
+const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+const lum = (h) => {
+  const [r, g, b] = rgb(h).map((v) => v / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+export const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+const mix = (a, b, t) => '#' + rgb(a).map((v, i) => Math.round(v + (rgb(b)[i] - v) * t).toString(16).padStart(2, '0')).join('');
 
 // A Lucide outline icon (24x24, stroke based).
 export function lucide(name, x, y, size, color, width = 2) {

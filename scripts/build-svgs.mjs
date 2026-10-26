@@ -11,17 +11,21 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 
+// Palette: "Manila Night Market" 60-30-10 combination from the vault
+// (ui-ux/Harmonized 60-30-10 color combinations and OKLCH token architecture).
+// 60% midnight slate canvas, 30% elevated surfaces, 10% one amber accent.
 const THEMES = {
   dark: {
-    bg: '#0d1117', panel: '#161b22', line: '#30363d', text: '#e6edf3', muted: '#8b949e',
-    accent: '#2dd4bf', violet: '#a78bfa', star: '#c9d1d9', cell: '#21262d',
-    project: { amber: '#f59e0b', green: '#4ade80', pink: '#e879f9', violet: '#a78bfa', teal: '#2dd4bf' },
+    bg: '#0b0f17', panel: '#151e2e', line: '#1f2a3c', text: '#e6edf3', muted: '#8b949e',
+    accent: '#f59e0b', violet: '#f59e0b', star: '#9aa4b2', cell: '#151e2e',
+    // Orbits: one amber planet, the rest in neutral steps so the accent stays the only colour.
+    project: { amber: '#f59e0b', green: '#c9d1d9', pink: '#8b949e', violet: '#5b6673', teal: '#f59e0b' },
     green: ['#0e4429', '#006d32', '#26a641', '#39d353'],
   },
   light: {
-    bg: '#ffffff', panel: '#f6f8fa', line: '#d0d7de', text: '#1f2328', muted: '#59636e',
-    accent: '#0f766e', violet: '#7c3aed', star: '#8c959f', cell: '#ebedf0',
-    project: { amber: '#b45309', green: '#15803d', pink: '#a21caf', violet: '#6d28d9', teal: '#0f766e' },
+    bg: '#ffffff', panel: '#f3f4f6', line: '#e2e6eb', text: '#111827', muted: '#59636e',
+    accent: '#b45309', violet: '#b45309', star: '#c3c9d1', cell: '#eceff3',
+    project: { amber: '#b45309', green: '#374151', pink: '#6b7280', violet: '#9ca3af', teal: '#b45309' },
     green: ['#9be9a8', '#40c463', '#30a14e', '#216e39'],
   },
 };
