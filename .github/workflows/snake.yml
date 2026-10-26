@@ -1,13 +1,16 @@
-name: Generate Snake Animation
+name: Generate Snake and Activity Card
 
 on:
   schedule:
     - cron: "0 */12 * * *"
   workflow_dispatch:
-  # Also regenerate as soon as this workflow is changed and pushed.
+  # Also rebuild as soon as this workflow or the card script changes.
   push:
     branches: [main]
-    paths: [".github/workflows/snake.yml"]
+    paths:
+      - ".github/workflows/snake.yml"
+      - "scripts/build-activity.mjs"
+      - "scripts/lib.mjs"
 
 jobs:
   generate:
@@ -15,6 +18,20 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      # Animated activity card from real contribution data (dist/activity-dark.svg, dist/activity-light.svg).
+      # Uses ACTIVITY_TOKEN if you add one (to count private contributions), otherwise the default token.
+      - name: Build activity card
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTIVITY_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_USER: ${{ github.repository_owner }}
+        run: node scripts/build-activity.mjs --out dist
+
       - uses: Platane/snk/svg-only@v3
         with:
           github_user_name: ${{ github.repository_owner }}
@@ -23,7 +40,7 @@ jobs:
             dist/snake.svg
             dist/snake-dark.svg?palette=github-dark&color_snake=#a78bfa
 
-      # Publish dist/ to the "output" branch with plain git (no extra action, so no Node 20 warning).
+      # Publish dist/ to the "output" branch with plain git.
       - name: Publish to the output branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -33,5 +50,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -q -m "Update snake animation"
+          git commit -q -m "Update snake and activity card"
           git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" output
