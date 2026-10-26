@@ -20,7 +20,7 @@ I'm a full-stack engineer from the Philippines who likes building things people 
 <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/about-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="assets/about-light.svg">
-    <img alt="Building now: Kamayo, an interactive Filipino Sign Language learning system. Exploring: private, local AI with Ollama and retrieval. I care about: security by default, accessibility and tests. Open to: full-stack and AI engineering roles and collaborations." src="assets/about-dark.svg" width="100%">
+    <img alt="Flagship, live: Tindero, shop, eat, sell and send in one Filipino app, live on desktop and mobile. Exploring: private, local AI with Ollama and retrieval. I care about: security by default, accessibility and tests. Open to: full-stack and AI engineering roles and collaborations." src="assets/about-dark.svg" width="100%">
   </picture>
 
 <a name="stack"></a>
@@ -36,42 +36,21 @@ I'm a full-stack engineer from the Philippines who likes building things people 
 <picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-projects-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/h-projects-light.svg"><img alt="03 Featured projects" src="assets/h-projects-dark.svg" width="100%"></picture>
 
 <p align="center">
-  <a href="https://github.com/SchneizelCodes/Tindero"><picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/card-tindero-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/card-tindero-light.svg">
-    <img alt="Tindero: pre-loved and community marketplace for the Philippines, with passkey sign-in, ID scanning and Android/iOS apps. TypeScript, React, Supabase, Capacitor." src="assets/card-tindero-dark.svg" width="49%">
-  </picture></a>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/card-kamayo-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/card-kamayo-light.svg">
-    <img alt="Kamayo: interactive Filipino Sign Language learning system with a 100-level path, server-checked progress and row-level security. In development." src="assets/card-kamayo-dark.svg" width="49%">
-  </picture>
+<a href="https://tinderoph.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/feature-tindero-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/feature-tindero-light.svg"><img alt="Tindero, my flagship project: shop, eat, sell and send in one Filipino app. Verified sellers, food ordering, a pre-loved marketplace and parcel sending. Live on desktop and mobile at tinderoph.vercel.app." src="assets/feature-tindero-dark.svg" width="100%"></picture></a><br><a href="https://tinderoph.vercel.app"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/link-tindero-site-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/link-tindero-site-light.svg"><img alt="Visit Tindero live site" src="assets/link-tindero-site-dark.svg" width="33.33%"></picture></a><a href="https://www.facebook.com/share/1A3EnLVQAT/?mibextid=wwXIfr"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/link-tindero-fb-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/link-tindero-fb-light.svg"><img alt="Tindero on Facebook" src="assets/link-tindero-fb-dark.svg" width="33.33%"></picture></a><a href="https://github.com/SchneizelCodes/Tindero"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/link-tindero-repo-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/link-tindero-repo-light.svg"><img alt="Tindero repository" src="assets/link-tindero-repo-dark.svg" width="33.33%"></picture></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/SchneizelCodes/PandeLoot"><picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/card-pandeloot-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/card-pandeloot-light.svg">
-    <img alt="PandeLoot: daily loot-drop storefront for Filipino bakery treats with Gemini-powered features. Next.js, Supabase. Deployed on Vercel." src="assets/card-pandeloot-dark.svg" width="49%">
-  </picture></a>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/card-anna-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/card-anna-light.svg">
-    <img alt="Anna: private AI companion that runs entirely on your PC through Ollama, with local retrieval. Runs 100% locally." src="assets/card-anna-dark.svg" width="49%">
-  </picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-kamayo-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/card-kamayo-light.svg"><img alt="Kamayo: interactive Filipino Sign Language learning system with a 100-level path, server-checked progress and row-level security. In development." src="assets/card-kamayo-dark.svg" width="49%"></picture>
+  <a href="https://github.com/SchneizelCodes/PandeLoot"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-pandeloot-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/card-pandeloot-light.svg"><img alt="PandeLoot: daily loot-drop storefront for Filipino bakery treats with Gemini-powered features. Next.js, Supabase. Deployed on Vercel." src="assets/card-pandeloot-dark.svg" width="49%"></picture></a>
 </p>
 
 <p align="center">
-  <a href="https://playful-pudding-f9a7df.netlify.app"><picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/card-viewer-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/card-viewer-light.svg">
-    <img alt="GitHub Profile Viewer: search any GitHub user for live stats, a contribution heatmap, top repos and languages. Live demo." src="assets/card-viewer-dark.svg" width="49%">
-  </picture></a>
-  <a href="https://github.com/SchneizelCodes/SCHNEIZEL.DEV"><picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/card-portfolio-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="assets/card-portfolio-light.svg">
-    <img alt="SCHNEIZEL.DEV: my portfolio as a 3D solar system built with React Three Fiber." src="assets/card-portfolio-dark.svg" width="49%">
-  </picture></a>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-anna-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/card-anna-light.svg"><img alt="Anna: private AI companion that runs entirely on your PC through Ollama, with local retrieval. Runs 100% locally." src="assets/card-anna-dark.svg" width="49%"></picture>
+  <a href="https://playful-pudding-f9a7df.netlify.app"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-viewer-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/card-viewer-light.svg"><img alt="GitHub Profile Viewer: search any GitHub user for live stats, a contribution heatmap, top repos and languages. Live demo." src="assets/card-viewer-dark.svg" width="49%"></picture></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/SchneizelCodes/SCHNEIZEL.DEV"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/card-portfolio-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/card-portfolio-light.svg"><img alt="SCHNEIZEL.DEV: my portfolio as a 3D solar system built with React Three Fiber." src="assets/card-portfolio-dark.svg" width="49%"></picture></a>
 </p>
 
 <a name="activity"></a>
@@ -92,12 +71,6 @@ I'm a full-stack engineer from the Philippines who likes building things people 
 <a name="contact"></a>
 <picture><source media="(prefers-color-scheme: dark)" srcset="assets/h-contact-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/h-contact-light.svg"><img alt="05 Let’s work together" src="assets/h-contact-dark.svg" width="100%"></picture>
 
-<a href="https://github.com/SchneizelCodes"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/cta-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/cta-light.svg"><img alt="Available for work. Let’s build something people use. Full-stack and AI engineering roles, Philippines, remote-friendly. Say hello on GitHub." src="assets/cta-dark.svg" width="100%"></picture></a>
-
-<!-- To add more ways to reach you: fill in the links, then delete this line and the closing arrow line below.
 <p align="center">
-  <a href="https://www.linkedin.com/in/YOUR-HANDLE"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/btn-linkedin-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/btn-linkedin-light.svg"><img alt="LinkedIn" src="assets/btn-linkedin-dark.svg" height="48"></picture></a>
-  <a href="mailto:YOU@EXAMPLE.COM"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/btn-email-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/btn-email-light.svg"><img alt="Email me" src="assets/btn-email-dark.svg" height="48"></picture></a>
-  <a href="https://YOUR-PORTFOLIO-URL"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/btn-portfolio-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/btn-portfolio-light.svg"><img alt="Portfolio" src="assets/btn-portfolio-dark.svg" height="48"></picture></a>
+<a href="https://www.linkedin.com/in/joshua-manuel-camacho-b392963b0/"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/cta-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/cta-light.svg"><img alt="Available for work. Let’s build something people use. Full-stack and AI engineering roles, Philippines, remote-friendly. Connect on LinkedIn." src="assets/cta-dark.svg" width="100%"></picture></a><br><a href="https://www.linkedin.com/in/joshua-manuel-camacho-b392963b0/"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/social-linkedin-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/social-linkedin-light.svg"><img alt="LinkedIn: Joshua Manuel Camacho" src="assets/social-linkedin-dark.svg" width="25%"></picture></a><a href="https://www.instagram.com/schneizel_jmnl/"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/social-instagram-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/social-instagram-light.svg"><img alt="Instagram: @schneizel_jmnl" src="assets/social-instagram-dark.svg" width="25%"></picture></a><a href="https://www.tiktok.com/@jmnl_inc"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/social-tiktok-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/social-tiktok-light.svg"><img alt="TikTok: @jmnl_inc" src="assets/social-tiktok-dark.svg" width="25%"></picture></a><a href="https://www.facebook.com/joshuamanuel.camacho"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/social-facebook-dark.svg"><source media="(prefers-color-scheme: light)" srcset="assets/social-facebook-light.svg"><img alt="Facebook: Joshua Manuel Camacho" src="assets/social-facebook-dark.svg" width="25%"></picture></a>
 </p>
--->
