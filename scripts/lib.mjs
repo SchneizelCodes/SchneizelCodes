@@ -31,12 +31,12 @@ export const MONO = "ui-monospace, SFMono-Regular, 'Cascadia Code', Consolas, 'L
 export const EASE = 'cubic-bezier(.22,1,.36,1)';
 
 // The portfolio this README showcases. Change it here if the site moves.
-export const PORTFOLIO_URL = 'https://joshua-camacho.dev';
+export const PORTFOLIO_URL = 'https://joshua-camachodev.vercel.app';
 
 // Small images embedded into SVGs as data URIs (GitHub blocks external images inside SVGs).
 export const media = (file) => {
   const ext = file.split('.').pop();
-  const type = ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
+  const type = ext === 'jpg' ? 'image/jpeg' : ext === 'svg' ? 'image/svg+xml' : `image/${ext}`;
   return `data:${type};base64,${readFileSync(new URL(`./media/${file}`, import.meta.url)).toString('base64')}`;
 };
 

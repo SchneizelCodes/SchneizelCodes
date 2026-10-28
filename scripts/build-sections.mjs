@@ -37,6 +37,12 @@ const chips = (list, x, y, maxX, T, size = 14) => {
   for (const s of list) { const p = pill(cx, y, s, T, { size }); if (cx + p.w > maxX) break; out += p.svg; cx += p.w + 8; }
   return out;
 };
+// Chips that wrap onto extra rows instead of being cut off; returns the SVG and the row count.
+const chipRows = (list, x, y, maxX, T, size = 14) => {
+  let cx = x, cy = y, rows = 1, out = '';
+  for (const s of list) { const w = textW(s, size, true) + 24; if (cx + w > maxX && cx > x) { cx = x; cy += 40; rows++; } out += pill(cx, cy, s, T, { size }).svg; cx += w + 8; }
+  return { svg: out, rows };
+};
 const statusPill = (x, y, label, live, T, size = 14) => {
   const w = textW(label, size, true) + 44, c = live ? T.ok : T.accent;
   return `<rect x="${x}" y="${y}" width="${w}" height="32" rx="16" fill="${T.card2}" stroke="${T.line}"/>
@@ -267,43 +273,93 @@ ${rows}
 }
 
 // ===================================================================== PROJECTS
+// Each card mirrors a "scene" on the portfolio's Work section: index and kind, a giant
+// uppercase name, tagline, about, stack, then one action, with the project's real media on
+// the right (stacked on top on phones). Live projects link to the live site; Anna is private.
 export const PROJECTS = [
-  { id: 'kamayo', n: '02', kind: 'EDTECH · ACCESSIBILITY', title: 'Kamayo', icon: 'hand',
-    body: 'Interactive Filipino Sign Language learning system with a 100-level path. Server-checked progress, row-level security on every record, and tested database rules.',
-    stack: ['React 19', 'TypeScript', 'Vite', 'Supabase', 'Vitest'], status: 'In development', live: false, cta: null },
-  { id: 'pandeloot', n: '03', kind: 'E-COMMERCE · AI', title: 'PandeLoot', icon: 'croissant',
-    body: 'A daily “loot drop” storefront for Filipino bakery treats, with Gemini-powered features, Google sign-in and live drops.',
-    stack: ['Next.js', 'TypeScript', 'Supabase', 'Gemini API'], status: 'Deployed on Vercel', live: true, cta: 'View repo' },
-  { id: 'anna', n: '04', kind: 'LOCAL AI · PRIVACY', title: 'Anna', icon: 'bot',
-    body: 'A private AI companion that runs entirely on your PC through Ollama. Indexes only approved folders, remembers only what you allow, and suggests instead of editing.',
-    stack: ['Node.js', 'Ollama', 'RAG', 'Tailscale'], status: 'Runs 100% locally', live: false, cta: null },
-  { id: 'viewer', n: '05', kind: 'DEVELOPER TOOL', title: 'GitHub Profile Viewer', icon: 'search',
-    body: 'Search any GitHub user for live stats, a contribution heatmap with snake animation, top repositories and a language breakdown.',
-    stack: ['React', 'Vite', 'Tailwind CSS', 'GitHub API'], status: 'Live', live: true, cta: 'Open live demo' },
-  { id: 'portfolio', n: '06', kind: '3D · CREATIVE', title: 'SCHNEIZEL.DEV', icon: 'orbit',
-    body: 'My portfolio as a 3D solar system: each project is a planet you can fly to, built with React Three Fiber.',
-    stack: ['Next.js', 'React Three Fiber', 'Three.js', 'Zustand'], status: 'Portfolio', live: false, cta: 'View repo' },
+  { id: 'kamayo', n: '02', kind: 'EDTECH · ACCESSIBILITY', title: 'Kamayo', tagline: 'Learn Filipino Sign Language, one level at a time.',
+    body: 'A 100-level path across five stages, a sign dictionary, server-checked progress and row-level security on every record.',
+    stack: ['React 19', 'TypeScript', 'Vite', 'Supabase', 'Vitest'], status: 'LIVE', live: true, url: 'https://kamayo-lyart.vercel.app', media: 'phones', shots: ['kamayo-practice.jpg', 'kamayo-poster.jpg', 'kamayo-connect.jpg'] },
+  { id: 'pandeloot', n: '03', kind: 'COMMERCE · AI', title: 'PandeLoot', tagline: 'A daily loot drop of Filipino bakery treats.',
+    body: 'Free and discounted drops from the neighbourhood panaderia, live Tambayan chatter, vouchers and Gemini-powered picks.',
+    stack: ['Next.js', 'TypeScript', 'Supabase', 'Gemini API'], status: 'LIVE', live: true, url: 'https://pande-loot.vercel.app', media: 'phone', shots: ['pandeloot-today.jpg'], logo: 'pandeloot-icon.svg' },
+  { id: 'anna', n: '04', kind: 'PRIVATE AI · LOCAL', title: 'Anna', tagline: 'An AI companion that never leaves the PC.',
+    body: 'Runs entirely through Ollama with local retrieval. Reads only approved folders, remembers only what is allowed, and suggests drafts to review.',
+    stack: ['Node.js', 'Ollama', 'RAG', 'Embeddings'], status: 'PRIVATE', live: false, url: null, note: 'Private local AI · hosted on Joshua’s PC', media: 'image', shots: ['anna-desk.jpg'] },
+  { id: 'viewer', n: '05', kind: 'DEVELOPER TOOL', title: 'Profile Viewer', tagline: 'Any GitHub user, at a glance.',
+    body: 'Search a username for live stats, a contribution heatmap with a snake, top repositories and a language breakdown.',
+    stack: ['React', 'Vite', 'Tailwind CSS', 'GitHub API'], status: 'LIVE', live: true, url: 'https://playful-pudding-f9a7df.netlify.app', media: 'heatmap' },
+  { id: 'portfolio', n: '06', kind: '3D · EARLIER PORTFOLIO', title: 'SCHNEIZEL.DEV', tagline: 'My earlier portfolio, as an explorable 3D scene.',
+    body: 'A solar-system portfolio built with React Three Fiber: project pods to fly to, a telemetry HUD and a terminal dock.',
+    stack: ['Next.js', 'React Three Fiber', 'Three.js', 'Zustand'], status: 'LIVE', live: true, url: 'https://schneizeldev.vercel.app', media: 'browser', shots: ['schneizel-dev.jpg'] },
 ];
+const hostOf = (u) => u.replace(/^https?:\/\//, '').replace(/\/$/, '');
+// The right-hand media panel: dotted surface with the project's real screenshots.
+function projectMedia(p, x, y, w, h, T) {
+  let inner = '';
+  const phone = (px, py, pw, file, cls = '', delay = 0) => {
+    const ph = pw * 2.05, r = pw * 0.12;
+    return `<g class="${cls}" style="animation-delay:${delay}s"><rect x="${px - 4}" y="${py - 4}" width="${pw + 8}" height="${ph + 8}" rx="${r + 4}" fill="#000" stroke="${T.lineHi}"/>
+<clipPath id="ph-${file}"><rect x="${px}" y="${py}" width="${pw}" height="${ph}" rx="${r}"/></clipPath><image clip-path="url(#ph-${file})" href="${media(file)}" x="${px}" y="${py}" width="${pw}" height="${ph}" preserveAspectRatio="xMidYMin slice"/></g>`;
+  };
+  if (p.media === 'phones') {
+    const pw = Math.min(w * 0.26, (h - 40) / 2.05), cx = x + w / 2, py = y + (h - pw * 2.05) / 2;
+    inner = phone(cx - pw * 1.55, py + 16, pw * 0.92, p.shots[0], 'float', -2) + phone(cx + pw * 0.63, py + 16, pw * 0.92, p.shots[2], 'float', -5) + phone(cx - pw / 2, py, pw, p.shots[1], 'float');
+  } else if (p.media === 'phone') {
+    const pw = Math.min(w * 0.3, (h - 40) / 2.05), py = y + (h - pw * 2.05) / 2, px = x + w * 0.62 - pw / 2;
+    const lx = x + w * 0.24, ly = y + h / 2;
+    inner = `<g class="float" style="animation-delay:-3s"><image href="${media(p.logo)}" x="${lx - 44}" y="${ly - 44}" width="88" height="88"/></g>${phone(px, py, pw, p.shots[0], 'float')}`;
+  } else if (p.media === 'image' || p.media === 'browser') {
+    const iw = w - 48, ih = iw * 0.5625, ix = x + 24, iy = y + (h - ih - (p.media === 'browser' ? 28 : 0)) / 2;
+    const top = p.media === 'browser'
+      ? `<rect x="${ix}" y="${iy}" width="${iw}" height="${ih + 28}" rx="12" fill="#111" stroke="${T.lineHi}"/>${[14, 28, 42].map((o) => `<circle cx="${ix + o}" cy="${iy + 14}" r="3.5" fill="#444"/>`).join('')}<rect x="${ix + iw / 2 - 90}" y="${iy + 6}" width="180" height="16" rx="8" fill="#1e1e1e"/><text x="${ix + iw / 2}" y="${iy + 18}" text-anchor="middle" font-family="${MONO}" font-size="11" fill="#9a9a9a">${esc(hostOf(p.url))}</text>` : '';
+    const oy = p.media === 'browser' ? iy + 28 : iy;
+    const badge = p.media === 'image' ? `<rect x="${ix + 12}" y="${oy + 12}" width="${textW('PRIVATE · HOSTED ON JOSHUA’S PC', 11, true) + 36}" height="26" rx="13" fill="#000" fill-opacity=".72"/><circle cx="${ix + 26}" cy="${oy + 25}" r="3" fill="#fff" class="pulse"/><text x="${ix + 36}" y="${oy + 29}" font-family="${MONO}" font-size="11" font-weight="700" letter-spacing="1" fill="#fff">PRIVATE · HOSTED ON JOSHUA’S PC</text>` : '';
+    inner = `<g class="float">${top}<clipPath id="im-${p.id}"><rect x="${ix}" y="${oy}" width="${iw}" height="${ih}" rx="${p.media === 'browser' ? 0 : 12}"/></clipPath><image clip-path="url(#im-${p.id})" href="${media(p.shots[0])}" x="${ix}" y="${oy}" width="${iw}" height="${ih}" preserveAspectRatio="xMidYMid slice"/>${p.media === 'image' ? `<rect x="${ix + 0.5}" y="${oy + 0.5}" width="${iw - 1}" height="${ih - 1}" rx="12" fill="none" stroke="${T.lineHi}"/>` : ''}${badge}</g>`;
+  } else if (p.media === 'heatmap') {
+    const cols = 20, rows = 7, s = Math.min((w - 80) / cols, (h - 120) / rows), gx = x + (w - cols * s) / 2, gy = y + (h - rows * s + 56) / 2, sy = gy - 66;
+    let seed = 3; const r = () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296);
+    let cells = '';
+    for (let c = 0; c < cols; c++) for (let k = 0; k < rows; k++) { const v = r(); cells += `<rect x="${(gx + c * s).toFixed(1)}" y="${(gy + k * s).toFixed(1)}" width="${(s - 4).toFixed(1)}" height="${(s - 4).toFixed(1)}" rx="3" fill="${v > 0.55 ? T.accent : T.lineHi}" fill-opacity="${v > 0.55 ? (0.35 + (v - 0.55) * 1.4).toFixed(2) : 0.5}" class="cell" style="animation-delay:${((c * rows + k) * 0.012).toFixed(2)}s"/>`; }
+    inner = `<rect x="${x + 40}" y="${sy}" width="${w - 80}" height="36" rx="18" fill="${T.card}" stroke="${T.line}"/>${lucide('search', x + 54, sy + 8, 20, T.muted, 2)}<text x="${x + 84}" y="${sy + 23}" font-family="${MONO}" font-size="14" fill="${T.text}">SchneizelCodes<tspan class="caret" fill="${T.accent}">▍</tspan></text>${cells}`;
+  }
+  return `<clipPath id="mp"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="16"/></clipPath><g clip-path="url(#mp)"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${T.card2}"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#mdots)"/>${inner}</g><rect x="${x + 0.5}" y="${y + 0.5}" width="${w - 1}" height="${h - 1}" rx="16" fill="none" stroke="${T.line}"/>`;
+}
 function card(p, B, m) {
   const T = themed(B, C.projects);
-  const W = m ? 480 : 1200, pad = m ? 28 : 40;
-  const lines = wrap(p.body, 19, m ? W - pad * 2 : 760).slice(0, m ? 5 : 3);
-  const yTitle = pad + (m ? 66 : 62), yBody = yTitle + 40;
-  const H = m ? yBody + lines.length * 29 + 120 : Math.max(300, yBody + lines.length * 29 + 116);
-  const yChips = yBody + lines.length * 29 + (m ? 8 : 10), yStatus = H - (m ? 56 : 58);
-  const wm = m ? lucide(p.icon, W - 104, 22, 76, T.lineHi, 1.4) : lucide(p.icon, W - 230, 44, 170, T.lineHi, 1.3);
-  const ctaW = p.cta ? textW(p.cta, 16) + 64 : 0;
-  return `${open(W, H, `${p.title} — ${p.kind.toLowerCase()}`, `${p.body} Built with ${p.stack.join(', ')}. Status: ${p.status}.`, B)}
-<style>${BASE_CSS}</style>
+  const W = m ? 480 : 1200, pad = m ? 28 : 44, colW = m ? W - pad * 2 : 520;
+  const mh = m ? 280 : 0, top = m ? pad + mh + 32 : pad;
+  const fs = p.title.length > 10 ? (m ? 44 : 60) : (m ? 56 : 76);
+  const tag = wrap(p.tagline, 21, colW).slice(0, 2), lines = wrap(p.body, 17, colW - (m ? 0 : 120)).slice(0, 4);
+  const yTitle = top + 36 + fs * 0.9, yTag = yTitle + 40, yRule = yTag + (tag.length - 1) * 28 + 26;
+  const yBody = yRule + 34, yChips = yBody + lines.length * 26 + 16;
+  const cr = m ? chipRows(p.stack, pad, yChips, W - pad, T, 15) : chipRows(p.stack, pad + 120, yChips, pad + colW, T, 14);
+  const yCta = yChips + cr.rows * 40 + 20, H = Math.max(m ? 0 : 460, yCta + 52 + pad);
+  const ctaLabel = p.url ? 'Visit live site' : p.note, ctaW = p.url ? textW(ctaLabel, 16) + 72 : textW(ctaLabel, 14) + 58;
+  const chipSvg = cr.svg;
+  const mx = m ? pad : pad + colW + 60, my = m ? pad : pad, mw = m ? W - pad * 2 : W - mx - pad, mH = m ? mh : H - pad * 2;
+  const cta = p.url
+    ? `<g clip-path="url(#cc)"><rect x="${pad}" y="${yCta}" width="${ctaW}" height="52" fill="url(#g-k)"/><rect class="sheen" x="${pad}" y="${yCta}" width="70" height="52" fill="url(#sh)"/></g><text x="${pad + 26}" y="${yCta + 32}" font-family="${SANS}" font-size="16" font-weight="650" fill="${T.onAccent}">${esc(ctaLabel)}</text><g class="nudge">${lucide('arrow-up-right', pad + ctaW - 40, yCta + 17, 18, T.onAccent, 2.4)}</g>`
+    : `<rect x="${pad + 0.75}" y="${yCta + 0.75}" width="${ctaW - 1.5}" height="50.5" rx="25.25" fill="none" stroke="${T.lineHi}" stroke-width="1.5" stroke-dasharray="5 5"/><g transform="translate(${pad + 22} ${yCta + 17})" fill="none" stroke="${T.accent}" stroke-width="2" stroke-linecap="round"><rect x="0" y="7" width="16" height="11" rx="2"/><path d="M4 7V4.5a4 4 0 0 1 8 0V7"/></g><text x="${pad + 48}" y="${yCta + 31}" font-family="${SANS}" font-size="14" font-weight="600" fill="${T.text}">${esc(ctaLabel)}</text>`;
+  return `${open(W, H, `${p.title} — ${p.kind.toLowerCase()}`, `${p.tagline} ${p.body} Built with ${p.stack.join(', ')}. ${p.url ? `Live at ${hostOf(p.url)}.` : p.note + '.'}`, B)}
+<defs>${dotGrid('mdots', T, 16)}<clipPath id="cc"><rect x="${pad}" y="${yCta}" width="${ctaW}" height="52" rx="26"/></clipPath><clipPath id="tc"><rect x="0" y="${yTitle - fs}" width="${m ? W : pad + colW + 40}" height="${fs * 1.1}"/></clipPath>
+<linearGradient id="sh" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+<style>${BASE_CSS}.sheen{animation:sh 5s ease-in-out infinite}@keyframes sh{0%,65%{transform:translateX(-90px)}100%{transform:translateX(${ctaW + 60}px)}}
+.line{animation:line 1s ${EASE} .15s backwards}@keyframes line{from{opacity:0;transform:translateY(${fs * 0.8}px)}}
+.cell{animation:cell 6s ease-in-out infinite backwards}@keyframes cell{0%{opacity:0}10%,85%{opacity:1}100%{opacity:1}}
+.caret{animation:pulse 1s steps(1) infinite}.dash{stroke-dashoffset:0;animation:dash 3s linear infinite}@keyframes dash{to{stroke-dashoffset:-40}}
+${reducedMotion('.sheen{opacity:0}.line,.cell,.dash{animation:none}')}</style>
 ${cardBox('k', 0, 0, W, H, 24, T)}
-<g class="float">${wm}</g>
-<text x="${pad}" y="${pad + 14}" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2" fill="${T.muted}">${p.n}</text>
-<text x="${pad + 34}" y="${pad + 14}" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2" fill="${T.accent}">${esc(p.kind)}</text>
-<text x="${pad}" y="${yTitle}" font-family="${SANS}" font-size="${m ? 34 : 38}" font-weight="700" letter-spacing="-.8" fill="${T.text}">${esc(p.title)}</text>
-${lines.map((l, j) => `<text x="${pad}" y="${yBody + j * 29}" font-family="${SANS}" font-size="19" fill="${T.muted}">${esc(l)}</text>`).join('')}
-${chips(p.stack, pad, yChips, W - pad, T, m ? 15 : 14)}
-${statusPill(pad, yStatus, p.status, p.live, T, m ? 15 : 14)}
-${p.cta ? `<rect x="${W - pad - ctaW}" y="${yStatus - 4}" width="${ctaW}" height="40" rx="20" fill="url(#g-k)"/><text x="${W - pad - ctaW + 20}" y="${yStatus + 21}" font-family="${SANS}" font-size="16" font-weight="650" fill="${T.onAccent}">${esc(p.cta)}</text><g class="nudge">${lucide('arrow-up-right', W - pad - 34, yStatus + 7, 18, T.onAccent, 2.4)}</g>` : ''}
+${projectMedia(p, mx, my, mw, mH, T)}
+<text x="${pad}" y="${top + 14}" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2"><tspan fill="${T.accent}">${p.n}</tspan><tspan fill="${T.muted}"> — ${esc(p.kind)}</tspan></text>
+${m ? '' : `<g transform="translate(${pad + colW - textW(p.status, 13, true) - 24} ${top})"><circle cx="5" cy="9" r="4.5" fill="${p.live ? T.accent : 'none'}" stroke="${p.live ? 'none' : T.muted}" stroke-width="1.5" class="${p.live ? 'pulse' : ''}"/><text x="18" y="14" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2" fill="${T.text}">${p.status}</text></g>`}
+<g clip-path="url(#tc)"><text x="${pad - 3}" y="${yTitle}" class="line" font-family="${SANS}" font-size="${fs}" font-weight="800" letter-spacing="${-fs * 0.045}" fill="${T.text}">${esc(p.title.toUpperCase())}</text></g>
+${tag.map((l, j) => `<text x="${pad}" y="${yTag + j * 28}" font-family="${SANS}" font-size="${m ? 20 : 22}" font-weight="650" fill="${T.text}">${esc(l)}</text>`).join('')}
+<rect x="${pad}" y="${yRule}" width="${colW}" height="1" fill="${T.line}"/>
+${m ? '' : `<text x="${pad}" y="${yBody}" font-family="${MONO}" font-size="11" font-weight="700" letter-spacing="1.6" fill="${T.text}">ABOUT</text><text x="${pad}" y="${yChips + 20}" font-family="${MONO}" font-size="11" font-weight="700" letter-spacing="1.6" fill="${T.text}">STACK</text>`}
+${lines.map((l, j) => `<text x="${pad + (m ? 0 : 120)}" y="${yBody + j * 26}" font-family="${SANS}" font-size="17" fill="${T.muted}">${esc(l)}</text>`).join('')}
+${chipSvg}
+${cta}
 </svg>`;
 }
 
@@ -417,7 +473,7 @@ function portfolio(B, m, dark) {
 .pan{animation:pan 14s ease-in-out infinite}@keyframes pan{0%,30%{transform:none}50%,80%{transform:translateY(-${Math.round(fh * 0.06)}px) scale(1.04)}100%{transform:none}}${reducedMotion('.sheen{opacity:0}.pan{animation:none}')}</style>
 ${cardBox('pf', 0, 0, W, H, 26, T)}
 <text x="${pad}" y="${pad + 14}" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2" fill="${T.accent}">FEATURED · MY PORTFOLIO</text>
-<text x="${pad}" y="${pad + 70}" font-family="${SANS}" font-size="${m ? 38 : 46}" font-weight="800" letter-spacing="-1.4" fill="${T.text}">${esc(PORTFOLIO.host)}</text>
+<text x="${pad}" y="${pad + 70}" font-family="${SANS}" font-size="${m ? 38 : 46}" font-weight="800" letter-spacing="-1.4" fill="${T.text}">joshua-camacho.dev</text>
 <text x="${pad}" y="${pad + 106}" font-family="${SANS}" font-size="${m ? 20 : 21}" font-weight="600" fill="${T.text}">The site behind this README.</text>
 ${lines.map((l, j) => `<text x="${pad}" y="${yBody + j * 28}" font-family="${SANS}" font-size="19" fill="${T.muted}">${esc(l)}</text>`).join('')}
 ${chipSvg}

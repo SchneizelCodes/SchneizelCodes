@@ -34,7 +34,7 @@ const sections = [
   },
   {
     anchor: 'portfolio',
-    items: [img('portfolio', 'My portfolio, joshua-camacho.dev: a particle portrait built in three.js follows you through black and white bands, with real project media, a GitHub wall, a downloadable résumé and certificates. Built with Next.js, React, TypeScript, three.js and Tailwind CSS. Visit portfolio.', { href: PORTFOLIO_URL })],
+    items: [img('portfolio', 'My portfolio, joshua-camachodev.vercel.app: a particle portrait built in three.js follows you through black and white bands, with real project media, a GitHub wall, a downloadable résumé and certificates. Built with Next.js, React, TypeScript, three.js and Tailwind CSS. Visit portfolio.', { href: PORTFOLIO_URL })],
   },
   {
     anchor: 'about', header: img('h-about', '01 About: I build things people actually use.'),
@@ -54,11 +54,11 @@ const sections = [
         img('link-tindero-fb', 'Tindero on Facebook', { width: '33.33%', href: 'https://www.facebook.com/share/1A3EnLVQAT/?mibextid=wwXIfr', span: [0.3333, 0.6667] }),
         img('link-tindero-repo', 'Tindero repository', { width: '33.33%', href: `https://github.com/${USER}/Tindero`, span: [0.6667, 1] }),
       ], { gapless: true }),
-      row([img('card-kamayo', 'Kamayo: interactive Filipino Sign Language learning system with a 100-level path, server-checked progress and row-level security. In development.')]),
-      row([img('card-pandeloot', 'PandeLoot: daily loot-drop storefront for Filipino bakery treats with Gemini-powered features. Next.js, Supabase. Deployed on Vercel.', { href: `https://github.com/${USER}/PandeLoot` })]),
-      row([img('card-anna', 'Anna: private AI companion that runs entirely on your PC through Ollama, with local retrieval. Runs 100% locally.')]),
+      row([img('card-kamayo', 'Kamayo: learn Filipino Sign Language, one level at a time. A 100-level path, a sign dictionary, server-checked progress and row-level security. Live: visit kamayo-lyart.vercel.app.', { href: 'https://kamayo-lyart.vercel.app' })]),
+      row([img('card-pandeloot', 'PandeLoot: a daily loot drop of Filipino bakery treats, with live chatter, vouchers and Gemini-powered picks. Live: visit pande-loot.vercel.app.', { href: 'https://pande-loot.vercel.app' })]),
+      row([img('card-anna', 'Anna: an AI companion that never leaves the PC. A private local AI hosted on Joshua’s own PC through Ollama, with local retrieval. No public demo.')]),
       row([img('card-viewer', 'GitHub Profile Viewer: search any GitHub user for live stats, a contribution heatmap, top repos and languages. Live demo.', { href: 'https://playful-pudding-f9a7df.netlify.app' })]),
-      row([img('card-portfolio', 'SCHNEIZEL.DEV: my portfolio as a 3D solar system built with React Three Fiber.', { href: `https://github.com/${USER}/SCHNEIZEL.DEV` })]),
+      row([img('card-portfolio', 'SCHNEIZEL.DEV: my earlier portfolio as an explorable 3D scene built with React Three Fiber. Live: visit schneizeldev.vercel.app.', { href: 'https://schneizeldev.vercel.app' })]),
     ],
   },
   {

@@ -18,7 +18,7 @@
 
 <a name="portfolio"></a>
 
-<a href="https://joshua-camacho.dev"><picture><source media="(max-width: 768px)" srcset="../assets/portfolio-m-split.svg"><img alt="My portfolio, joshua-camacho.dev: a particle portrait built in three.js follows you through black and white bands, with real project media, a GitHub wall, a downloadable résumé and certificates. Built with Next.js, React, TypeScript, three.js and Tailwind CSS. Visit portfolio." src="../assets/portfolio-split.svg" width="100%"></picture></a>
+<a href="https://joshua-camachodev.vercel.app"><picture><source media="(max-width: 768px)" srcset="../assets/portfolio-m-split.svg"><img alt="My portfolio, joshua-camachodev.vercel.app: a particle portrait built in three.js follows you through black and white bands, with real project media, a GitHub wall, a downloadable résumé and certificates. Built with Next.js, React, TypeScript, three.js and Tailwind CSS. Visit portfolio." src="../assets/portfolio-split.svg" width="100%"></picture></a>
 
 <a name="about"></a>
 
@@ -43,15 +43,15 @@ I'm a full-stack engineer from the Philippines who likes building things people 
 </p>
 
 <p align="center">
-  <picture><source media="(max-width: 768px)" srcset="../assets/card-kamayo-m-split.svg"><img alt="Kamayo: interactive Filipino Sign Language learning system with a 100-level path, server-checked progress and row-level security. In development." src="../assets/card-kamayo-split.svg" width="100%"></picture>
+  <a href="https://kamayo-lyart.vercel.app"><picture><source media="(max-width: 768px)" srcset="../assets/card-kamayo-m-split.svg"><img alt="Kamayo: learn Filipino Sign Language, one level at a time. A 100-level path, a sign dictionary, server-checked progress and row-level security. Live: visit kamayo-lyart.vercel.app." src="../assets/card-kamayo-split.svg" width="100%"></picture></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/SchneizelCodes/PandeLoot"><picture><source media="(max-width: 768px)" srcset="../assets/card-pandeloot-m-split.svg"><img alt="PandeLoot: daily loot-drop storefront for Filipino bakery treats with Gemini-powered features. Next.js, Supabase. Deployed on Vercel." src="../assets/card-pandeloot-split.svg" width="100%"></picture></a>
+  <a href="https://pande-loot.vercel.app"><picture><source media="(max-width: 768px)" srcset="../assets/card-pandeloot-m-split.svg"><img alt="PandeLoot: a daily loot drop of Filipino bakery treats, with live chatter, vouchers and Gemini-powered picks. Live: visit pande-loot.vercel.app." src="../assets/card-pandeloot-split.svg" width="100%"></picture></a>
 </p>
 
 <p align="center">
-  <picture><source media="(max-width: 768px)" srcset="../assets/card-anna-m-split.svg"><img alt="Anna: private AI companion that runs entirely on your PC through Ollama, with local retrieval. Runs 100% locally." src="../assets/card-anna-split.svg" width="100%"></picture>
+  <picture><source media="(max-width: 768px)" srcset="../assets/card-anna-m-split.svg"><img alt="Anna: an AI companion that never leaves the PC. A private local AI hosted on Joshua’s own PC through Ollama, with local retrieval. No public demo." src="../assets/card-anna-split.svg" width="100%"></picture>
 </p>
 
 <p align="center">
@@ -59,7 +59,7 @@ I'm a full-stack engineer from the Philippines who likes building things people 
 </p>
 
 <p align="center">
-  <a href="https://github.com/SchneizelCodes/SCHNEIZEL.DEV"><picture><source media="(max-width: 768px)" srcset="../assets/card-portfolio-m-split.svg"><img alt="SCHNEIZEL.DEV: my portfolio as a 3D solar system built with React Three Fiber." src="../assets/card-portfolio-split.svg" width="100%"></picture></a>
+  <a href="https://schneizeldev.vercel.app"><picture><source media="(max-width: 768px)" srcset="../assets/card-portfolio-m-split.svg"><img alt="SCHNEIZEL.DEV: my earlier portfolio as an explorable 3D scene built with React Three Fiber. Live: visit schneizeldev.vercel.app." src="../assets/card-portfolio-split.svg" width="100%"></picture></a>
 </p>
 
 <a name="activity"></a>
