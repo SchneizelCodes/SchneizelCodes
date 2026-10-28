@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="96" viewBox="0 0 400 96" role="img" aria-labelledby="t d"><title id="t">Tindero on Facebook</title><desc id="d">Tindero on Facebook</desc><rect width="400" height="96" fill="#0b0f17"/>
-<defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.3" fill="#0e1f22"/></pattern><linearGradient id="b" x1="0" y1="0" x2="1" y2="0.6"><stop offset="0" stop-color="#60bcbf"/><stop offset="0.4" stop-color="#25a6ae"/><stop offset="0.65" stop-color="#139aa5"/><stop offset="1" stop-color="#308f9c"/></linearGradient></defs>
-<path d="M0 0H400V96H0H0Z" fill="#0A1517"/><path d="M0 0H400V96H0H0Z" fill="url(#dots)"/><path d="M400 95.5H0" fill="none" stroke="#18373c"/>
-<line x1="0" y1=".5" x2="400" y2=".5" stroke="#18373c"/>
-<line x1="399.5" y1="16" x2="399.5" y2="80" stroke="#18373c"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="96" viewBox="0 0 400 96" role="img" aria-labelledby="t d"><title id="t">Tindero on Facebook</title><desc id="d">Tindero on Facebook</desc><rect width="400" height="96" fill="#0d1117"/>
+<defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.3" fill="#1f1f1f"/></pattern><linearGradient id="b" x1="0" y1="0" x2="1" y2="0.6"><stop offset="0" stop-color="#1e8286"/><stop offset="0.4" stop-color="#066a71"/><stop offset="0.65" stop-color="#025e67"/><stop offset="1" stop-color="#035660"/></linearGradient></defs>
+<path d="M0 0H400V96H0H0Z" fill="#0a0a0a"/><path d="M0 0H400V96H0H0Z" fill="url(#dots)"/><path d="M400 95.5H0" fill="none" stroke="#262626"/>
+<line x1="0" y1=".5" x2="400" y2=".5" stroke="#262626"/>
+<line x1="399.5" y1="16" x2="399.5" y2="80" stroke="#262626"/>
 
-<rect x="50.75" y="20.75" width="298.5" height="50.5" rx="26" fill="#12262A" stroke="#1c4348" stroke-width="1.5"/>
-<path transform="translate(72 35) scale(0.9166666666666666)" d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z" fill="#0866FF"/><text x="108" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="17" font-weight="650" fill="#e6edf3">Tindero on Facebook</text>
-<g transform="translate(312 37) scale(0.75)" fill="none" stroke="#0f8e97" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10" />
+<rect x="50.75" y="20.75" width="298.5" height="50.5" rx="26" fill="#141414" stroke="#3d3d3d" stroke-width="1.5"/>
+<path transform="translate(72 35) scale(0.9166666666666666)" d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z" fill="#0866FF"/><text x="108" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="17" font-weight="650" fill="#ededed">Tindero on Facebook</text>
+<g transform="translate(312 37) scale(0.75)" fill="none" stroke="#018690" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10" />
   <path d="M7 17 17 7" /></g>
 </svg>

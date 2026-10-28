@@ -14,8 +14,8 @@
 // Motion rules (prompt-motion.com): one idea per element, ease-out, seamless loops, and a
 // still readable frame for reduced motion.
 
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { THEMES, SANS, MONO, EASE, ICONS, esc, wrap, textW, brand, lucide, dotGrid, reducedMotion, themed, gradDef } from './lib.mjs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { THEMES, SANS, MONO, EASE, ICONS, esc, wrap, textW, brand, lucide, dotGrid, reducedMotion, themed, gradDef, media, PORTFOLIO_URL } from './lib.mjs';
 
 const open = (w, h, title, desc, T) =>
   `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="t d"><title id="t">${esc(title)}</title><desc id="d">${esc(desc)}</desc><rect width="${w}" height="${h}" fill="${T.bg}"/>`;
@@ -53,39 +53,70 @@ const BASE_CSS = `.pulse{animation:pulse 2s ease-in-out infinite}@keyframes puls
 ${reducedMotion('.rise{opacity:1}.ring{opacity:0}')}`;
 
 // One combination per section (see the colour rules at the top).
-const C = { intro: 'night', about: 'batanes', stack: 'boracay', projects: 'tindero', activity: 'cordillera', contact: 'night' };
+const C = { intro: 'night', portfolio: 'night', about: 'batanes', stack: 'boracay', projects: 'tindero', activity: 'cordillera', certificates: 'mayon', contact: 'night' };
 
-// ===================================================================== HERO (Manila Night Market)
+// ===================================================================== HERO (portfolio style)
+// Mirrors joshua-camacho.dev: a particle portrait (sampled from the real photo by
+// scripts/sample-portrait.py) gathering inside a turning dial, a giant uppercase headline,
+// and the same three stats as the site. Particles are the text colour: white on dark, black on light.
+const PORTRAIT = JSON.parse(readFileSync(new URL('./media/portrait-points.json', import.meta.url)));
 const PHRASES = ['full-stack products', 'AI-powered tools', 'accessible learning apps', 'apps for Filipino users'];
+const STATS = [['11', 'Repositories'], ['5', 'Projects'], ['3', 'Certificates']];
+function particles(cx, cy, ph, rad, T, id) {
+  const pw = ph / PORTRAIT.aspect, x0 = cx - pw / 2, y0 = cy - ph / 2;
+  const groups = Array.from({ length: 6 }, () => []);
+  // Same dots on both themes, only the colour flips (white on dark, black on light), like the site.
+  PORTRAIT.points.forEach(([u, v, b], i) => { groups[i % 6].push(`<circle cx="${(x0 + u * pw).toFixed(1)}" cy="${(y0 + v * ph).toFixed(1)}" r="${(rad * (0.18 + Math.sqrt(b) * 0.95)).toFixed(2)}" opacity="${(0.45 + b * 0.55).toFixed(2)}"/>`); });
+  // Each group flies in from its own direction, then twinkles on its own beat.
+  const from = [[-90, -40], [80, -70], [110, 40], [-70, 90], [20, -110], [-120, 10]];
+  return groups.map((g, k) => `<g class="gather" style="--fx:${from[k][0]}px;--fy:${from[k][1]}px;animation-delay:${0.25 + k * 0.12}s,${2.2 + k * 0.5}s"><g fill="${T.text}">${g.join('')}</g></g>`).join('');
+}
+function dial(cx, cy, r, T, id) {
+  const ticks = Array.from({ length: 90 }, (_, i) => {
+    const a = (i * 4 * Math.PI) / 180, long = i % 10 === 0, r2 = r + (long ? 16 : 8);
+    return `<line x1="${(cx + r * Math.cos(a)).toFixed(1)}" y1="${(cy + r * Math.sin(a)).toFixed(1)}" x2="${(cx + r2 * Math.cos(a)).toFixed(1)}" y2="${(cy + r2 * Math.sin(a)).toFixed(1)}" stroke="${long ? T.muted : T.lineHi}" stroke-width="${long ? 1.4 : 1}"/>`;
+  }).join('');
+  return `<path id="${id}" d="M ${cx + r - 22} ${cy} a ${r - 22} ${r - 22} 0 1 0 ${-(r - 22) * 2} 0 a ${r - 22} ${r - 22} 0 1 0 ${(r - 22) * 2} 0" fill="none"/>
+<g class="spin" style="animation-duration:120s;transform-origin:${cx}px ${cy}px">${ticks}</g>
+<g class="spin" style="animation-duration:160s;animation-direction:reverse;transform-origin:${cx}px ${cy}px"><circle cx="${cx}" cy="${cy}" r="${r + 34}" fill="none" stroke="${T.line}" stroke-dasharray="40 14 4 14"/></g>
+<circle cx="${cx}" cy="${cy}" r="${r - 22}" fill="none" stroke="${T.accent}" stroke-opacity=".55" stroke-width="1.2" pathLength="1" class="draw"/>
+<circle r="4.5" fill="${T.accent}"><animateMotion dur="14s" repeatCount="indefinite"><mpath href="#${id}"/></animateMotion></circle>`;
+}
 function hero(B, m) {
   const T = themed(B, C.intro);
-  const W = m ? 480 : 1200, H = m ? 560 : 420;
-  const cx = m ? 360 : 930, cy = m ? 120 : 210, k = m ? 0.55 : 1;
-  let seed = 7; const r = () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296);
-  const stars = Array.from({ length: m ? 40 : 80 }, () => `<circle cx="${(r() * W).toFixed(1)}" cy="${(r() * H).toFixed(1)}" r="${(r() * 1.1 + 0.5).toFixed(2)}" fill="${T.lineHi}" class="tw" style="animation-duration:${(r() * 4 + 3).toFixed(1)}s;animation-delay:${(-r() * 6).toFixed(1)}s"/>`).join('');
-  // Planets are shades of the one accent (its gradient stops), light inside to deep outside.
-  const orbit = [[0, 62, 3.2, 14, -35], [1, 98, 4.2, 22, 130], [2, 134, 3.6, 32, 245], [3, 170, 4.6, 46, 50]]
-    .map(([c, rad, s, t, a]) => `<circle cx="${cx}" cy="${cy}" r="${rad * k}" fill="none" stroke="${T.line}" stroke-dasharray="3 7"/><g transform="rotate(${a} ${cx} ${cy})"><g class="spin" style="animation-duration:${t}s;transform-origin:${cx}px ${cy}px"><circle cx="${cx + rad * k}" cy="${cy}" r="${s * 2 * Math.max(k, 0.7)}" fill="${T.grad[c].color}"/></g></g>`).join('');
+  const W = m ? 480 : 1200, H = m ? 770 : 540, x = m ? 40 : 64;
+  const cx = m ? 240 : 905, cy = m ? 205 : 270, r = m ? 150 : 205;
+  const fs = m ? 47 : 70, l1 = m ? 470 : 186, l2 = l1 + fs * 0.98;
+  const yName = l2 + (m ? 46 : 50), yPh = yName + (m ? 44 : 50), yStats = yPh + (m ? 92 : 72);
   const PH = 3, cycle = PHRASES.length * PH, pct = (s) => ((s / cycle) * 100).toFixed(2);
   const phrases = PHRASES.map((p, i) => `<text x="0" y="0" class="ph" fill="${T.accent}" style="animation-delay:${1.4 + i * PH}s">${esc(p)}</text>`).join('');
-  const name = m ? [['Joshua', 0, 250], ['Manuel', 0, 316], ['Camacho', 0, 382]] : [['Joshua', 64, 190], ['Manuel', 314, 190], ['Camacho', 64, 258]];
-  return `${open(W, H, 'Joshua Manuel Camacho', 'Full-stack engineer and aspiring AI engineer from the Philippines. I build full-stack products, AI-powered tools, accessible learning apps and apps for Filipino users.', B)}
+  const colW = m ? 136 : 168;
+  const stats = STATS.map(([n, l], i) => `<g class="rise" style="animation-delay:${1 + i * 0.12}s">${i ? `<line x1="${x + i * colW - 18}" y1="${yStats - 44}" x2="${x + i * colW - 18}" y2="${yStats + 26}" stroke="${T.line}"/>` : ''}
+<text x="${x + i * colW}" y="${yStats}" font-family="${SANS}" font-size="${m ? 46 : 52}" font-weight="700" letter-spacing="-2" fill="${T.text}">${n}</text>
+<text x="${x + i * colW}" y="${yStats + 24}" font-family="${MONO}" font-size="${m ? 12 : 13}" font-weight="600" letter-spacing="1.6" fill="${T.muted}">${l.toUpperCase()}</text></g>`).join('');
+  return `${open(W, H, 'Joshua Manuel Camacho — Full-Stack & AI Engineer', 'A particle portrait of Joshua inside a turning dial. Hey, I’m Joshua: full-stack and AI engineer from the Philippines. I build full-stack products, AI-powered tools, accessible learning apps and apps for Filipino users. 11 repositories, 5 projects, 3 certificates.', B)}
 <style>
-  .tw{animation:tw ease-in-out infinite alternate}@keyframes tw{from{opacity:.15}to{opacity:.8}}
   .spin{animation:spin linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-  .w{font:700 ${m ? 60 : 64}px ${SANS};letter-spacing:-1.5px;opacity:0;animation:rise .9s ${EASE} forwards}
-  .ph{font:600 ${m ? 26 : 28}px ${SANS};opacity:0;animation:swap ${cycle}s ${EASE} infinite backwards}
+  .gather{animation:gather 1.8s ${EASE} backwards,twinkle 5s ease-in-out infinite alternate}
+  @keyframes gather{from{opacity:0;transform:translate(var(--fx),var(--fy)) scale(1.06)}to{opacity:1;transform:none}}
+  @keyframes twinkle{from{opacity:1}to{opacity:.55}}
+  .draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 2.4s ${EASE} .3s forwards}@keyframes draw{to{stroke-dashoffset:0}}
+  .line{opacity:0;animation:line 1s ${EASE} forwards}@keyframes line{from{opacity:0;transform:translateY(${fs * 0.7}px)}to{opacity:1;transform:none}}
+  .ph{font:600 ${m ? 24 : 26}px ${SANS};opacity:0;animation:swap ${cycle}s ${EASE} infinite backwards}
   @keyframes swap{0%{opacity:0;transform:translateY(14px)}${pct(0.5)}%{opacity:1;transform:none}${pct(PH - 0.4)}%{opacity:1;transform:none}${pct(PH)}%{opacity:0;transform:translateY(-14px)}100%{opacity:0}}
   ${BASE_CSS}
-  @media (prefers-reduced-motion: reduce){.w,.ph:first-child{opacity:1}}
+  @media (prefers-reduced-motion: reduce){.gather,.line,.ph:first-child{opacity:1;animation:none}.draw{stroke-dashoffset:0}}
 </style>
 ${cardBox('hero', 0, 0, W, H, 20, T)}
-${stars}
-<g class="rise" style="animation-delay:.2s">${orbit}<circle cx="${cx}" cy="${cy}" r="${30 * k}" fill="none" stroke="${T.accent}" stroke-opacity=".5"/><circle cx="${cx}" cy="${cy}" r="${18 * k}" fill="url(#g-hero)"/></g>
-<g class="rise" style="animation-delay:.1s"><circle cx="${m ? 40 : 72}" cy="${m ? 192 : 104}" r="5" fill="${T.ok}" class="pulse"/><text x="${m ? 56 : 88}" y="${m ? 198 : 110}" font-family="${MONO}" font-size="${m ? 18 : 17}" fill="${T.muted}">hello, I'm</text></g>
-${name.map(([t, x, y], i) => `<text x="${m ? 40 : x}" y="${y}" class="w" fill="${T.text}" style="animation-delay:${0.25 + i * 0.12}s">${t}</text>`).join('')}
-<g transform="translate(${m ? 40 : 64} ${m ? 448 : 330})"><text x="0" y="0" font-family="${SANS}" font-size="${m ? 26 : 28}" fill="${T.muted}" class="rise" style="animation-delay:.8s">I build</text><g transform="translate(${m ? 0 : 104} ${m ? 38 : 0})">${phrases}</g></g>
-<text x="${m ? 40 : 64}" y="${m ? 528 : 380}" font-family="${MONO}" font-size="${m ? 15 : 16}" fill="${T.muted}" class="rise" style="animation-delay:1.1s">${m ? 'Full-Stack · AI Engineer · Philippines' : 'Full-Stack Engineer  ·  Aspiring AI Engineer  ·  Philippines'}</text>
+<defs><clipPath id="l1c"><rect x="0" y="${l1 - fs}" width="${W}" height="${fs * 1.08}"/></clipPath><clipPath id="l2c"><rect x="0" y="${l2 - fs}" width="${W}" height="${fs * 1.08}"/></clipPath></defs>
+${dial(cx, cy, r, T, 'orb')}
+${particles(cx, cy, m ? 300 : 410, ((m ? 300 : 410) / PORTRAIT.aspect / PORTRAIT.cols) * 0.5, T)}
+<g class="rise" style="animation-delay:.1s"><circle cx="${x + 5}" cy="${l1 - fs - (m ? 26 : 32)}" r="5" fill="${T.ok}" class="pulse"/><text x="${x + 20}" y="${l1 - fs - (m ? 21 : 27)}" font-family="${MONO}" font-size="${m ? 14 : 15}" font-weight="600" letter-spacing="3" fill="${T.text}">HEY, I’M JOSHUA</text></g>
+<g clip-path="url(#l1c)"><text x="${x - 3}" y="${l1}" class="line" style="animation-delay:.35s" font-family="${SANS}" font-size="${fs}" font-weight="800" letter-spacing="${-fs * 0.045}" fill="${T.text}">FULL-STACK &amp;</text></g>
+<g clip-path="url(#l2c)"><text x="${x - 3}" y="${l2}" class="line" style="animation-delay:.47s" font-family="${SANS}" font-size="${fs}" font-weight="800" letter-spacing="${-fs * 0.045}" fill="${T.accent}">AI ENGINEER.</text></g>
+<text x="${x}" y="${yName}" font-family="${SANS}" font-size="${m ? 19 : 21}" font-weight="600" fill="${T.text}" class="rise" style="animation-delay:.7s">Joshua Manuel Camacho <tspan fill="${T.muted}" font-weight="400">· Philippines</tspan></text>
+<g transform="translate(${x} ${yPh})"><text x="0" y="0" font-family="${SANS}" font-size="${m ? 24 : 26}" fill="${T.muted}" class="rise" style="animation-delay:.85s">I build</text><g transform="translate(${m ? 92 : 98} 0)">${phrases}</g></g>
+${stats}
 </svg>`;
 }
 
@@ -106,36 +137,49 @@ function switchPill(o, on, B, m) {
 ${m ? lucide(o.icon, 13, 13, 18, on ? fg : T.accent, 2) : `${lucide(o.icon, 20, H / 2 - 9, 18, on ? fg : T.accent, 2)}<text x="48" y="${H / 2 + 5.5}" font-family="${SANS}" font-size="15" font-weight="650" fill="${fg}">${esc(o.label)}</text>${on ? `<circle cx="${W - 20}" cy="${H / 2}" r="4" fill="${fg}"/>` : ''}`}
 </svg>`;
 }
+// Section titles match the portfolio's section headers word for word.
 export const SECTIONS = [
-  { id: 'about', combo: C.about, n: '01', label: 'About', title: 'About me', note: 'What I build and how I work' },
-  { id: 'stack', combo: C.stack, n: '02', label: 'Stack', title: 'Tech stack', note: 'Tools I ship with' },
-  { id: 'projects', combo: C.projects, n: '03', label: 'Projects', title: 'Featured projects', note: 'Selected work · tap a card' },
-  { id: 'activity', combo: C.activity, n: '04', label: 'Activity', title: 'GitHub activity', note: 'Rebuilt from live data every 12 hours' },
-  { id: 'contact', combo: C.contact, n: '05', label: 'Contact', title: 'Let’s work together', note: 'Open to roles and collaborations' },
+  { id: 'about', combo: C.about, n: '01', label: 'About', title: 'I build things people actually use.', accent: 'use', note: 'What I build and how I work' },
+  { id: 'stack', combo: C.stack, n: '02', label: 'Stack', title: 'Tools I ship with', accent: 'ship', note: 'TypeScript end to end' },
+  { id: 'projects', combo: C.projects, n: '03', label: 'Work', title: 'Selected work', accent: 'work', note: 'Tap a card to open it' },
+  { id: 'activity', combo: C.activity, n: '04', label: 'GitHub', title: 'Every square is work', accent: 'work', note: 'Rebuilt from live data every 12 hours' },
+  { id: 'certificates', combo: C.certificates, n: '05', label: 'Certs', title: 'Always learning.', accent: 'learning', note: 'Certificates and badges' },
+  { id: 'contact', combo: C.contact, n: '06', label: 'Contact', title: 'Say hello.', accent: 'hello', note: 'Open to roles and collaborations' },
 ];
 function nav(s, B, m) {
   const T = themed(B, C.intro);
-  const W = m ? 46 : 150, H = 46;
+  const W = m ? 46 : 144, H = 46;
   return `${open(W, H, s.label, `Jump to ${s.label}`, B)}
 <defs>${gradDef('g', T, 0, 0, 1, 1)}</defs>
 ${m ? `<circle cx="23" cy="23" r="22.25" fill="url(#g)"/><text x="23" y="28" text-anchor="middle" font-family="${MONO}" font-size="14" font-weight="700" fill="${T.onAccent}">${s.n}</text>`
     : `<rect x=".75" y=".75" width="${W - 1.5}" height="${H - 1.5}" rx="${H / 2}" fill="${T.card}" stroke="${T.lineHi}" stroke-width="1.5"/>
 ${badge(8, 9, 32, 28, s.n, T, 'g', 12.5)}
 <text x="50" y="${H / 2 + 6}" font-family="${SANS}" font-size="16" font-weight="600" fill="${T.text}">${esc(s.label)}</text>
-<path d="M${W - 26} ${H / 2 - 4}l4 4 4-4" stroke="${T.accent}" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`}
+<path d="M${W - 22} ${H / 2 - 4}l4 4 4-4" stroke="${T.accent}" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`}
 </svg>`;
 }
+// The portfolio's section header: mono index + label over a hairline with a one-hue segment,
+// then a giant uppercase statement whose lines rise out of masks; the accent word is coloured.
 function header(s, B, m) {
   const T = themed(B, s.combo);
-  const W = m ? 480 : 1200, H = m ? 78 : 92;
-  return `${open(W, H, `${s.n} ${s.title}`, s.note, B)}
-<defs>${gradDef('g', T)}</defs>
-<style>.seg{animation:seg 1.2s ${EASE} .2s backwards;transform-origin:0 0}@keyframes seg{from{transform:scaleX(0)}}${BASE_CSS}</style>
-<g class="rise">${badge(0, m ? 18 : 26, m ? 40 : 42, m ? 32 : 34, s.n, T, 'g', 15)}
-<text x="${m ? 54 : 58}" y="${m ? 45 : 54}" font-family="${SANS}" font-size="${m ? 28 : 34}" font-weight="700" letter-spacing="-.6" fill="${T.text}">${esc(s.title)}</text>
-${m ? '' : `<text x="${W}" y="52" text-anchor="end" font-family="${MONO}" font-size="14" fill="${T.muted}">${esc(s.note)}</text>`}</g>
-<rect x="0" y="${H - 13}" width="${W}" height="1.5" fill="${T.line}"/>
-<rect x="0" y="${H - 14}" width="${m ? 120 : 160}" height="3" rx="1.5" fill="url(#g)" class="seg"/>
+  const W = m ? 480 : 1200, fs = m ? 50 : 84, lh = fs * 0.94, maxW = W - 4;
+  const lines = [];
+  for (const w of s.title.toUpperCase().split(' ')) {
+    const cur = lines[lines.length - 1];
+    if (cur && textW(`${cur} ${w}`, fs) * 1.2 <= maxW) lines[lines.length - 1] = `${cur} ${w}`; else lines.push(w);
+  }
+  const top = m ? 64 : 76, H = Math.round(top + fs * 0.8 + (lines.length - 1) * lh + (m ? 26 : 34));
+  const acc = s.accent.toUpperCase();
+  const words = (l) => l.split(' ').map((w) => `<tspan fill="${w.replace(/[.,]/g, '') === acc ? T.accent : T.text}">${esc(w)}</tspan>`).join(' ');
+  return `${open(W, H, `${s.n} ${s.label}: ${s.title}`, s.note, B)}
+<defs>${gradDef('g', T)}${lines.map((_, i) => `<clipPath id="lc${i}"><rect x="0" y="${top + i * lh - fs * 0.05}" width="${W}" height="${fs * 0.95}"/></clipPath>`).join('')}</defs>
+<style>.seg{animation:seg 1.2s ${EASE} .2s backwards;transform-origin:0 0}@keyframes seg{from{transform:scaleX(0)}}
+.line{animation:line 1s ${EASE} backwards}@keyframes line{from{opacity:0;transform:translateY(${fs * 0.8}px)}}${BASE_CSS}${reducedMotion('.line,.seg{animation:none}')}</style>
+<g class="rise"><text x="0" y="22" font-family="${MONO}" font-size="${m ? 13 : 14}" font-weight="700" letter-spacing="2.4"><tspan fill="${T.accent}">${s.n}</tspan><tspan dx="12" fill="${T.text}">${esc(s.label.toUpperCase())}</tspan></text>
+${m ? '' : `<text x="${W}" y="22" text-anchor="end" font-family="${MONO}" font-size="14" fill="${T.muted}">${esc(s.note)}</text>`}</g>
+<rect x="0" y="36" width="${W}" height="1" fill="${T.line}"/>
+<rect x="0" y="35.5" width="${m ? 64 : 88}" height="2" rx="1" fill="url(#g)" class="seg"/>
+${lines.map((l, i) => `<g clip-path="url(#lc${i})"><text x="-2" y="${top + i * lh + fs * 0.8}" class="line" style="animation-delay:${0.15 + i * 0.1}s" font-family="${SANS}" font-size="${fs}" font-weight="800" letter-spacing="${-fs * 0.042}">${words(l)}</text></g>`).join('\n')}
 </svg>`;
 }
 
@@ -331,8 +375,8 @@ const LINKS = [
   { id: 'tindero-fb', label: 'Tindero on Facebook', short: 'Facebook', brand: 'facebook' },
   { id: 'tindero-repo', label: 'View repo', short: 'Repo', icon: 'github' },
 ];
-function linkSlice(o, i, B, m) {
-  const T = themed(B, C.projects), K = T, n = LINKS.length;
+function linkSlice(o, i, B, m, list = LINKS, combo = C.projects) {
+  const T = themed(B, combo), K = T, n = list.length;
   const W = m ? 160 : 400, H = m ? 132 : 96;
   const fg = o.primary ? K.onAccent : B.text;
   if (m) {
@@ -348,6 +392,89 @@ ${lucide('arrow-up-right', W / 2 - 8, 104, 16, K.accent, 2.2)}` });
 <rect x="${bx + 0.75}" y="${by + 0.75}" width="${bw - 1.5}" height="${bh - 1.5}" rx="${bh / 2}" fill="${o.primary ? 'url(#b)' : K.card2}" stroke="${o.primary ? 'none' : K.lineHi}" stroke-width="1.5"/>
 ${icon}<text x="${bx + 58}" y="${by + bh / 2 + 6}" font-family="${SANS}" font-size="17" font-weight="650" fill="${fg}">${esc(o.label)}</text>
 ${lucide('arrow-up-right', bx + bw - 38, by + bh / 2 - 9, 18, o.primary ? fg : K.accent, 2.2)}` });
+}
+
+// ===================================================================== PORTFOLIO FEATURE
+// The live portfolio, shown in a browser frame with a real screenshot (dark or light to match).
+const PORTFOLIO = {
+  host: PORTFOLIO_URL.replace(/^https?:\/\//, ''),
+  body: 'A particle portrait built in three.js follows you through black and white bands: real project media, a GitHub wall, a downloadable résumé and certificates.',
+  stack: ['Next.js', 'React', 'TypeScript', 'three.js', 'Tailwind CSS'],
+};
+function portfolio(B, m, dark) {
+  const T = themed(B, C.portfolio);
+  const W = m ? 480 : 1200, pad = m ? 28 : 44;
+  const lines = wrap(PORTFOLIO.body, 19, m ? W - pad * 2 : 520).slice(0, m ? 6 : 4);
+  const yBody = pad + (m ? 150 : 150), yChips = yBody + lines.length * 28 + (m ? 6 : 14);
+  const yBtn = yChips + (m ? 2 : 1) * 40 + 16, bw = m ? W - pad * 2 : 260, bh = 56;
+  const fw = m ? W - pad * 2 : 540, fh = fw * 0.625, fx = m ? pad : W - pad - fw, fy = m ? yBtn + bh + 40 : 72;
+  const H = m ? fy + fh + 44 + pad : 470;
+  const chipSvg = m ? chips(PORTFOLIO.stack.slice(0, 3), pad, yChips, W - pad, T, 15) + chips(PORTFOLIO.stack.slice(3), pad, yChips + 40, W - pad, T, 15) : chips(PORTFOLIO.stack, pad, yChips, 600, T, 14);
+  return `${open(W, H, 'My portfolio — joshua-camacho.dev', `${PORTFOLIO.body} Built with ${PORTFOLIO.stack.join(', ')}. Visit ${PORTFOLIO.host}.`, B)}
+<defs><clipPath id="shot"><rect x="${fx}" y="${fy + 34}" width="${fw}" height="${fh}" rx="0"/></clipPath><clipPath id="bc"><rect x="${pad}" y="${yBtn}" width="${bw}" height="${bh}" rx="${bh / 2}"/></clipPath>
+<linearGradient id="sh" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+<style>${BASE_CSS}.sheen{animation:sh 5s ease-in-out infinite}@keyframes sh{0%,65%{transform:translateX(-120px)}100%{transform:translateX(${bw + 60}px)}}
+.pan{animation:pan 14s ease-in-out infinite}@keyframes pan{0%,30%{transform:none}50%,80%{transform:translateY(-${Math.round(fh * 0.06)}px) scale(1.04)}100%{transform:none}}${reducedMotion('.sheen{opacity:0}.pan{animation:none}')}</style>
+${cardBox('pf', 0, 0, W, H, 26, T)}
+<text x="${pad}" y="${pad + 14}" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2" fill="${T.accent}">FEATURED · MY PORTFOLIO</text>
+<text x="${pad}" y="${pad + 70}" font-family="${SANS}" font-size="${m ? 38 : 46}" font-weight="800" letter-spacing="-1.4" fill="${T.text}">${esc(PORTFOLIO.host)}</text>
+<text x="${pad}" y="${pad + 106}" font-family="${SANS}" font-size="${m ? 20 : 21}" font-weight="600" fill="${T.text}">The site behind this README.</text>
+${lines.map((l, j) => `<text x="${pad}" y="${yBody + j * 28}" font-family="${SANS}" font-size="19" fill="${T.muted}">${esc(l)}</text>`).join('')}
+${chipSvg}
+<g clip-path="url(#bc)"><rect x="${pad}" y="${yBtn}" width="${bw}" height="${bh}" fill="url(#g-pf)"/><rect class="sheen" x="${pad}" y="${yBtn}" width="80" height="${bh}" fill="url(#sh)"/></g>
+${lucide('globe', pad + (m ? bw / 2 - 98 : 26), yBtn + bh / 2 - 11, 22, T.onAccent)}
+<text x="${pad + (m ? bw / 2 - 64 : 60)}" y="${yBtn + bh / 2 + 6}" font-family="${SANS}" font-size="18" font-weight="650" fill="${T.onAccent}">Visit portfolio</text>
+<g class="nudge">${lucide('arrow-up-right', pad + (m ? bw / 2 + 74 : bw - 44), yBtn + bh / 2 - 10, 20, T.onAccent, 2.4)}</g>
+<g class="float"><rect x="${fx - 0.5}" y="${fy - 0.5}" width="${fw + 1}" height="${fh + 35}" rx="14" fill="${T.card2}" stroke="${T.lineHi}"/>
+${[18, 34, 50].map((o) => `<circle cx="${fx + o}" cy="${fy + 17}" r="4.5" fill="${T.lineHi}"/>`).join('')}
+<rect x="${fx + fw / 2 - 110}" y="${fy + 8}" width="220" height="18" rx="9" fill="${T.bg}"/><text x="${fx + fw / 2}" y="${fy + 21}" text-anchor="middle" font-family="${MONO}" font-size="12" fill="${T.muted}">${esc(PORTFOLIO.host)}</text>
+<g clip-path="url(#shot)"><g class="pan" style="transform-origin:${fx + fw / 2}px ${fy + 34}px"><image href="${media(dark ? 'portfolio-dark.jpg' : 'portfolio-light.jpg')}" x="${fx}" y="${fy + 34}" width="${fw}" height="${fh}" preserveAspectRatio="xMidYMin slice"/></g></g></g>
+</svg>`;
+}
+
+// ===================================================================== CERTIFICATES
+// The same three entries as the portfolio's Certificates section, with the real images.
+const CERTS = [
+  { kind: 'Certificate', img: 'cert-udemy.jpg', issuer: 'UDEMY', name: 'Java Masterclass 2025: 130+ Hours of Expert Lessons', note: 'Certificate of completion, 135.5 total hours.', date: 'Oct 2026' },
+  { kind: 'Certificate', img: 'cert-cisco.jpg', issuer: 'CISCO NETWORKING ACADEMY', name: 'Introduction to Modern AI', note: 'Chatbot prompts, computer vision and machine translation.', date: 'Oct 2026' },
+  { kind: 'Badge', img: 'cert-badge.webp', badge: true, issuer: 'THE GLOBAL AI COMMUNITY', name: 'Global AI Manila AgentCamp 2026 — Attendee', note: 'AI and Azure AI Foundry, 20 February 2026.', date: 'Feb 2026' },
+];
+export const CERT_LINKS = [
+  { id: 'cert-udemy', label: 'Verify on Udemy', short: 'Udemy', icon: 'badge-check', primary: true },
+  { id: 'cert-cisco', label: 'Cisco certificate', short: 'Cisco PDF', icon: 'file-text' },
+  { id: 'cert-badge', label: 'AgentCamp badge', short: 'Badge', icon: 'award' },
+];
+function certificates(B, m) {
+  const T = themed(B, C.certificates);
+  const W = m ? 480 : 1200, colW = m ? 480 : 400, ip = m ? 28 : 24;
+  const pw = colW - ip * 2, ph = Math.round(pw / 1.414);
+  const blockH = ph + 175, H = m ? blockH * 3 + 16 : blockH + 24;
+  const body = CERTS.map((c, i) => {
+    const ox = m ? 0 : i * colW, oy = m ? i * blockH : 0, x = ox + ip, y = oy + 28;
+    const name = wrap(c.name, 19, pw - 24).slice(0, 2), note = wrap(c.note, 15, pw - 24).slice(0, 2);
+    const ty = y + ph + 40;
+    const imgEl = c.badge
+      ? `<rect x="${x}" y="${y}" width="${pw}" height="${ph}" fill="url(#pd)"/><image href="${media(c.img)}" x="${x + pw / 2 - ph * 0.36}" y="${y + ph * 0.07}" width="${ph * 0.72}" height="${ph * 0.86}" preserveAspectRatio="xMidYMid meet"/>`
+      : `<image href="${media(c.img)}" x="${x}" y="${y}" width="${pw}" height="${ph}" preserveAspectRatio="xMidYMin slice"/>`;
+    const kw = textW(c.kind.toUpperCase(), 11, true) + 22;
+    return `<g class="rise" style="animation-delay:${0.15 + i * 0.15}s">
+${m && i ? `<line x1="${ip}" y1="${oy + 4}" x2="${W - ip}" y2="${oy + 4}" stroke="${T.line}"/>` : ''}
+<clipPath id="ci${i}"><rect x="${x}" y="${y}" width="${pw}" height="${ph}" rx="10"/></clipPath>
+<g clip-path="url(#ci${i})"><rect x="${x}" y="${y}" width="${pw}" height="${ph}" fill="${T.card2}"/>${imgEl}<rect class="sheen" style="animation-delay:${i * 1.6}s" x="${x - 120}" y="${y}" width="100" height="${ph}" fill="url(#sh)"/></g>
+<rect x="${x + 0.5}" y="${y + 0.5}" width="${pw - 1}" height="${ph - 1}" rx="10" fill="none" stroke="${T.line}"/>
+<rect x="${x + 12}" y="${y + 12}" width="${kw}" height="24" rx="12" fill="url(#gt)"/><text x="${x + 12 + kw / 2}" y="${y + 28}" text-anchor="middle" font-family="${MONO}" font-size="11" font-weight="700" letter-spacing="1" fill="${T.onAccent}">${c.kind.toUpperCase()}</text>
+<text x="${x}" y="${ty - 8}" font-family="${MONO}" font-size="12" font-weight="600" letter-spacing="1.4" fill="${T.accent}">${esc(c.issuer)}</text>
+<text x="${x + pw}" y="${ty - 8}" text-anchor="end" font-family="${MONO}" font-size="12" fill="${T.muted}">${c.date}</text>
+${name.map((l, j) => `<text x="${x}" y="${ty + 22 + j * 25}" font-family="${SANS}" font-size="19" font-weight="650" fill="${T.text}">${esc(l)}</text>`).join('')}
+${note.map((l, j) => `<text x="${x}" y="${ty + 22 + name.length * 25 + 8 + j * 21}" font-family="${SANS}" font-size="15" fill="${T.muted}">${esc(l)}</text>`).join('')}
+</g>${!m && i < 2 ? `<line x1="${ox + colW - 0.5}" y1="24" x2="${ox + colW - 0.5}" y2="${H - 24}" stroke="${T.line}"/>` : ''}`;
+  }).join('\n');
+  return `${open(W, H, 'Certificates and badges', CERTS.map((c) => `${c.kind}: ${c.name}, ${c.issuer.toLowerCase()}, ${c.date}.`).join(' '), B)}
+<defs>${dotGrid('pd', T, 14)}<linearGradient id="sh" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+<style>${BASE_CSS}.sheen{animation:sh 6s ease-in-out infinite backwards}@keyframes sh{0%,70%{transform:translateX(0)}100%{transform:translateX(${pw + 240}px)}}${reducedMotion('.sheen{opacity:0}')}</style>
+${topCard(W, H, 26, T)}
+${body}
+</svg>`;
 }
 
 // ===================================================================== CONTACT
@@ -403,7 +530,10 @@ for (const [theme, B] of Object.entries(THEMES)) {
     SECTIONS.forEach((s) => { put(`nav-${s.id}${sfx}`, nav(s, B, m)); put(`h-${s.id}${sfx}`, header(s, B, m)); });
     put(`about${sfx}`, about(B, m));
     put(`stack${sfx}`, stack(B, m));
+    put(`portfolio${sfx}`, portfolio(B, m, theme === 'dark'));
     put(`feature-tindero${sfx}`, feature(B, m));
+    put(`certificates${sfx}`, certificates(B, m));
+    CERT_LINKS.forEach((o, i) => put(`link-${o.id}${sfx}`, linkSlice(o, i, B, m, CERT_LINKS, C.certificates)));
     LINKS.forEach((o, i) => put(`link-${o.id}${sfx}`, linkSlice(o, i, B, m)));
     PROJECTS.forEach((p) => put(`card-${p.id}${sfx}`, card(p, B, m)));
     put(`cta${sfx}`, cta(B, m));

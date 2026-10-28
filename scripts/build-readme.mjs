@@ -12,7 +12,7 @@
 // cross the centre use the -split file (built by splitSvg, cut at the right place).
 
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
-import { splitSvg } from './lib.mjs';
+import { splitSvg, PORTFOLIO_URL } from './lib.mjs';
 
 const USER = 'SchneizelCodes';
 const REPO = `https://github.com/${USER}/${USER}`;
@@ -22,29 +22,31 @@ const REMOTE = `https://raw.githubusercontent.com/${USER}/${USER}/output/`;
 const img = (base, alt, opts = {}) => ({ base, alt, ...opts }); // opts: width, height, span:[l,r], remote, href
 const row = (items, { gapless = false } = {}) => ({ row: items, gapless });
 
+// Nav pills (144×46 drawn at 38 px tall ≈ 119 px) centred in GitHub's ~838 px README column.
+const NAV = [['about', 'About'], ['stack', 'Stack'], ['projects', 'Work'], ['activity', 'GitHub'], ['certificates', 'Certificates'], ['contact', 'Contact']];
+const navSpan = (i) => { const col = 838, w = 119, gap = 4, x0 = (col - NAV.length * w - (NAV.length - 1) * gap) / 2, l = x0 + i * (w + gap); return [+(l / col).toFixed(3), +((l + w) / col).toFixed(3)]; };
+
 const sections = [
-  { anchor: null, items: [img('hero', 'Joshua Manuel Camacho — I build full-stack products, AI-powered tools, accessible learning apps and apps for Filipino users. Full-Stack Engineer, Aspiring AI Engineer, Philippines.')] },
+  { anchor: null, items: [img('hero', 'Hey, I’m Joshua Manuel Camacho: full-stack and AI engineer from the Philippines, shown as a particle portrait. I build full-stack products, AI-powered tools, accessible learning apps and apps for Filipino users. 11 repositories, 5 projects, 3 certificates.')] },
   { switcher: true },
   {
-    items: [row([
-      img('nav-about', 'About', { height: 38, href: '#about', span: [0.09, 0.26] }),
-      img('nav-stack', 'Stack', { height: 38, href: '#stack', span: [0.27, 0.44] }),
-      img('nav-projects', 'Projects', { height: 38, href: '#projects', span: [0.415, 0.585] }),
-      img('nav-activity', 'Activity', { height: 38, href: '#activity', span: [0.56, 0.73] }),
-      img('nav-contact', 'Contact', { height: 38, href: '#contact', span: [0.74, 0.91] }),
-    ])],
+    items: [row(NAV.map(([id, label], i) => img(`nav-${id}`, label, { height: 38, href: `#${id}`, span: navSpan(i) })))],
   },
   {
-    anchor: 'about', header: img('h-about', '01 About me'),
+    anchor: 'portfolio',
+    items: [img('portfolio', 'My portfolio, joshua-camacho.dev: a particle portrait built in three.js follows you through black and white bands, with real project media, a GitHub wall, a downloadable résumé and certificates. Built with Next.js, React, TypeScript, three.js and Tailwind CSS. Visit portfolio.', { href: PORTFOLIO_URL })],
+  },
+  {
+    anchor: 'about', header: img('h-about', '01 About: I build things people actually use.'),
     text: "I'm a full-stack engineer from the Philippines who likes building things people actually use, from a marketplace with mobile apps to a sign-language learning system. I work mostly in **TypeScript, React and Next.js** with **Supabase/PostgreSQL**, and I'm growing into **AI engineering**: local models, retrieval and agents that stay private by design.",
     items: [img('about', 'Flagship, live: Tindero, shop, eat, sell and send in one Filipino app, live on desktop and mobile. Exploring: private, local AI with Ollama and retrieval. I care about: security by default, accessibility and tests. Open to: full-stack and AI engineering roles and collaborations.')],
   },
   {
-    anchor: 'stack', header: img('h-stack', '02 Tech stack'),
+    anchor: 'stack', header: img('h-stack', '02 Stack: Tools I ship with'),
     items: [img('stack', 'Frontend: TypeScript, JavaScript, React, Next.js, Vite, Tailwind CSS, Three.js, Framer Motion, HTML5, CSS. Backend and data: Node.js, Supabase, PostgreSQL, Zod, WebAuthn, row-level security. Mobile and shipping: Capacitor, Vercel, Netlify, GitHub Actions, Git, GitHub. AI and quality: Ollama, Gemini API, RAG and embeddings, Vitest, Figma.')],
   },
   {
-    anchor: 'projects', header: img('h-projects', '03 Featured projects'),
+    anchor: 'projects', header: img('h-projects', '03 Work: Selected work'),
     items: [
       row([
         img('feature-tindero', 'Tindero, my flagship project: shop, eat, sell and send in one Filipino app. Verified sellers, food ordering, a pre-loved marketplace and parcel sending. Live on desktop and mobile at tinderoph.vercel.app.', { href: 'https://tinderoph.vercel.app', break: true }),
@@ -60,14 +62,23 @@ const sections = [
     ],
   },
   {
-    anchor: 'activity', header: img('h-activity', '04 GitHub activity'),
+    anchor: 'activity', header: img('h-activity', '04 GitHub: Every square is work'),
     items: [
       row([img('activity', 'My GitHub activity: total contributions, contributions this month, weekly streak and contributions per week for the last 16 weeks.', { remote: true })]),
       row([img('snake-card', 'Animated snake eating my contribution graph for the last 12 months, with today and my best day marked, plus last-year totals.', { remote: true })]),
     ],
   },
   {
-    anchor: 'contact', header: img('h-contact', '05 Let’s work together'),
+    anchor: 'certificates', header: img('h-certificates', '05 Certificates: Always learning.'),
+    items: [row([
+      img('certificates', 'Certificate: Java Masterclass 2025, 130+ hours of expert lessons, Udemy, October 2026. Certificate: Introduction to Modern AI, Cisco Networking Academy, October 2026. Badge: Global AI Manila AgentCamp 2026 attendee, The Global AI Community, February 2026.', { break: true }),
+      img('link-cert-udemy', 'Verify the Java Masterclass certificate on Udemy', { width: '33.33%', href: 'https://ude.my/UC-5e30f6f3-65f8-4eec-91c1-bb84714b4e80', span: [0, 0.3333] }),
+      img('link-cert-cisco', 'Open the Cisco Introduction to Modern AI certificate (PDF)', { width: '33.33%', href: `${REPO}/blob/main/certificates/cisco-intro-modern-ai.pdf`, span: [0.3333, 0.6667] }),
+      img('link-cert-badge', 'View the Global AI Manila AgentCamp badge', { width: '33.33%', href: `${REPO}/blob/main/certificates/global-ai-manila-agentcamp-badge.png`, span: [0.6667, 1] }),
+    ], { gapless: true })],
+  },
+  {
+    anchor: 'contact', header: img('h-contact', '06 Contact: Say hello.'),
     items: [row([
       img('cta', 'Available for work. Let’s build something people use. Full-stack and AI engineering roles, Philippines, remote-friendly. Connect on LinkedIn.', { href: 'https://www.linkedin.com/in/joshua-manuel-camacho-b392963b0/', break: true }),
       img('social-linkedin', 'LinkedIn: Joshua Manuel Camacho', { width: '25%', href: 'https://www.linkedin.com/in/joshua-manuel-camacho-b392963b0/', span: [0, 0.25] }),

@@ -10,23 +10,35 @@ import { readFileSync } from 'node:fs';
 //   10% accent  — amber gold, the only colour. Light mode uses a deeper amber for 5:1 contrast.
 // `ok` is GitHub's green, used only to mean "live" or "available".
 export const THEMES = {
+  // Owner rule (2026-10-28, same as joshua-camacho.dev): backgrounds are only black or white;
+  // colour lives only in text and buttons.
   dark: {
-    bg: '#0b0f17', card: '#0f1520', card2: '#151e2e', line: '#1f2a3c', lineHi: '#2c3a50',
-    text: '#e6edf3', muted: '#8b949e', faint: '#5b6673', dot: '#172133',
+    bg: '#0d1117', card: '#0a0a0a', card2: '#141414', line: '#262626', lineHi: '#3d3d3d',
+    text: '#ededed', muted: '#a3a3a3', faint: '#7a7a7a', dot: '#1f1f1f',
     accent: '#f59e0b', accentSoft: '#f59e0b', ok: '#3fb950', onAccent: '#111827',
-    mono: '#c9d1d9',
+    mono: '#d4d4d4',
   },
   light: {
-    bg: '#ffffff', card: '#fbfaf7', card2: '#f3f4f6', line: '#e2e6eb', lineHi: '#cfd5dd',
-    text: '#111827', muted: '#59636e', faint: '#8c959f', dot: '#e7eaee',
+    bg: '#ffffff', card: '#ffffff', card2: '#f5f5f5', line: '#e6e6e6', lineHi: '#cfcfcf',
+    text: '#0a0a0a', muted: '#525252', faint: '#6e6e6e', dot: '#ececec',
     accent: '#b45309', accentSoft: '#d97706', ok: '#1a7f37', onAccent: '#ffffff',
-    mono: '#374151',
+    mono: '#262626',
   },
 };
 
 export const SANS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif";
 export const MONO = "ui-monospace, SFMono-Regular, 'Cascadia Code', Consolas, 'Liberation Mono', monospace";
 export const EASE = 'cubic-bezier(.22,1,.36,1)';
+
+// The portfolio this README showcases. Change it here if the site moves.
+export const PORTFOLIO_URL = 'https://joshua-camacho.dev';
+
+// Small images embedded into SVGs as data URIs (GitHub blocks external images inside SVGs).
+export const media = (file) => {
+  const ext = file.split('.').pop();
+  const type = ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
+  return `data:${type};base64,${readFileSync(new URL(`./media/${file}`, import.meta.url)).toString('base64')}`;
+};
 
 export const ICONS = JSON.parse(readFileSync(new URL('./icons.json', import.meta.url)));
 
@@ -188,8 +200,9 @@ export function arcStops(hex, up = 0.09, down = 0.1) {
 export function themed(T, key) {
   const k = COMBOS[key];
   const dark = T.bg !== '#ffffff';
-  const card = dark ? k.c60 : mix('#ffffff', k.accent, 0.035);
-  const card2 = dark ? k.c30 : mix('#ffffff', k.accent, 0.085);
+  // Neutral canvas and surfaces (black / white); the combination only colours text and buttons.
+  const card = T.card;
+  const card2 = T.card2;
   const accent = resolveAccent(k.accent, card, dark);
   // Fills (buttons, badges) carry a label, so the arc is nudged lighter (dark mode, dark text) or
   // deeper (light mode, white text) until the label passes 4.5:1 at every stop.
@@ -211,11 +224,9 @@ export function themed(T, key) {
   const { onText, grad } = pick;
   return {
     ...T, combo: key, card, card2,
-    line: mix(card2, k.accent, dark ? 0.2 : 0.16), lineHi: mix(card2, k.accent, dark ? 0.34 : 0.28),
-    dot: mix(card, k.accent, dark ? 0.1 : 0.08),
-    // Quiet depth on big surfaces: the top of a card lifts toward its 30 % surface (dark) or the
-    // faintest accent tint (light). Same hue as the card, so it reads as light, not as colour.
-    cardTop: dark ? mix(card, k.c30, 0.75) : mix('#ffffff', k.accent, 0.075),
+    line: T.line, lineHi: T.lineHi,
+    dot: T.dot,
+    cardTop: card,
     accent, accent2: accent, accentSoft: accent,
     onAccent: onText,
     grad,

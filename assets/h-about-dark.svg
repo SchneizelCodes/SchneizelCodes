@@ -1,14 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="92" viewBox="0 0 1200 92" role="img" aria-labelledby="t d"><title id="t">01 About me</title><desc id="d">What I build and how I work</desc><rect width="1200" height="92" fill="#0b0f17"/>
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0.6"><stop offset="0" stop-color="#4ecce1"/><stop offset="0.4" stop-color="#15b3cf"/><stop offset="0.65" stop-color="#1da6c3"/><stop offset="1" stop-color="#189dbd"/></linearGradient></defs>
-<style>.seg{animation:seg 1.2s cubic-bezier(.22,1,.36,1) .2s backwards;transform-origin:0 0}@keyframes seg{from{transform:scaleX(0)}}.pulse{animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="256" viewBox="0 0 1200 256" role="img" aria-labelledby="t d"><title id="t">01 About: I build things people actually use.</title><desc id="d">What I build and how I work</desc><rect width="1200" height="256" fill="#0d1117"/>
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0.6"><stop offset="0" stop-color="#4ecce1"/><stop offset="0.4" stop-color="#15b3cf"/><stop offset="0.65" stop-color="#1da6c3"/><stop offset="1" stop-color="#189dbd"/></linearGradient><clipPath id="lc0"><rect x="0" y="71.8" width="1200" height="79.8"/></clipPath><clipPath id="lc1"><rect x="0" y="150.76" width="1200" height="79.8"/></clipPath></defs>
+<style>.seg{animation:seg 1.2s cubic-bezier(.22,1,.36,1) .2s backwards;transform-origin:0 0}@keyframes seg{from{transform:scaleX(0)}}
+.line{animation:line 1s cubic-bezier(.22,1,.36,1) backwards}@keyframes line{from{opacity:0;transform:translateY(67.2px)}}.pulse{animation:pulse 2s ease-in-out infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .ring{animation:ring 2.2s ease-out infinite}@keyframes ring{0%{transform:scale(.6);opacity:.7}100%{transform:scale(2.3);opacity:0}}
 .rise{opacity:0;animation:rise .9s cubic-bezier(.22,1,.36,1) forwards}@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .nudge{animation:nudge 2.6s cubic-bezier(.22,1,.36,1) infinite}@keyframes nudge{0%,60%,100%{transform:none}75%{transform:translate(3px,-3px)}}
 .float{animation:float 8s ease-in-out infinite}@keyframes float{0%,100%{transform:none}50%{transform:translateY(-6px)}}
-@media (prefers-reduced-motion: reduce){*{animation:none!important}.rise{opacity:1}.ring{opacity:0}}</style>
-<g class="rise"><rect x="0" y="26" width="42" height="34" rx="10" fill="url(#g)"/><text x="21" y="48.4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="15" font-weight="700" fill="#111827">01</text>
-<text x="58" y="54" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="34" font-weight="700" letter-spacing="-.6" fill="#e6edf3">About me</text>
-<text x="1200" y="52" text-anchor="end" font-family="ui-monospace, SFMono-Regular, 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="14" fill="#8b949e">What I build and how I work</text></g>
-<rect x="0" y="79" width="1200" height="1.5" fill="#11424e"/>
-<rect x="0" y="78" width="160" height="3" rx="1.5" fill="url(#g)" class="seg"/>
+@media (prefers-reduced-motion: reduce){*{animation:none!important}.rise{opacity:1}.ring{opacity:0}}@media (prefers-reduced-motion: reduce){*{animation:none!important}.line,.seg{animation:none}}</style>
+<g class="rise"><text x="0" y="22" font-family="ui-monospace, SFMono-Regular, 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="14" font-weight="700" letter-spacing="2.4"><tspan fill="#06B6D4">01</tspan><tspan dx="12" fill="#ededed">ABOUT</tspan></text>
+<text x="1200" y="22" text-anchor="end" font-family="ui-monospace, SFMono-Regular, 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="14" fill="#a3a3a3">What I build and how I work</text></g>
+<rect x="0" y="36" width="1200" height="1" fill="#262626"/>
+<rect x="0" y="35.5" width="88" height="2" rx="1" fill="url(#g)" class="seg"/>
+<g clip-path="url(#lc0)"><text x="-2" y="143.2" class="line" style="animation-delay:0.15s" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="84" font-weight="800" letter-spacing="-3.528"><tspan fill="#ededed">I</tspan> <tspan fill="#ededed">BUILD</tspan> <tspan fill="#ededed">THINGS</tspan> <tspan fill="#ededed">PEOPLE</tspan></text></g>
+<g clip-path="url(#lc1)"><text x="-2" y="222.15999999999997" class="line" style="animation-delay:0.25s" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="84" font-weight="800" letter-spacing="-3.528"><tspan fill="#ededed">ACTUALLY</tspan> <tspan fill="#06B6D4">USE.</tspan></text></g>
 </svg>
