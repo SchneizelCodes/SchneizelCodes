@@ -323,7 +323,8 @@ function projectMedia(p, x, y, w, h, T) {
     for (let c = 0; c < cols; c++) for (let k = 0; k < rows; k++) { const v = r(); cells += `<rect x="${(gx + c * s).toFixed(1)}" y="${(gy + k * s).toFixed(1)}" width="${(s - 4).toFixed(1)}" height="${(s - 4).toFixed(1)}" rx="3" fill="${v > 0.55 ? T.accent : T.lineHi}" fill-opacity="${v > 0.55 ? (0.35 + (v - 0.55) * 1.4).toFixed(2) : 0.5}" class="cell" style="animation-delay:${((c * rows + k) * 0.012).toFixed(2)}s"/>`; }
     inner = `<rect x="${x + 40}" y="${sy}" width="${w - 80}" height="36" rx="18" fill="${T.card}" stroke="${T.line}"/>${lucide('search', x + 54, sy + 8, 20, T.muted, 2)}<text x="${x + 84}" y="${sy + 23}" font-family="${MONO}" font-size="14" fill="${T.text}">SchneizelCodes<tspan class="caret" fill="${T.accent}">▍</tspan></text>${cells}`;
   }
-  return `<clipPath id="mp"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="16"/></clipPath><g clip-path="url(#mp)"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${T.card2}"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#mdots)"/>${inner}</g><rect x="${x + 0.5}" y="${y + 0.5}" width="${w - 1}" height="${h - 1}" rx="16" fill="none" stroke="${T.line}"/>`;
+  // No panel behind the media: it floats straight on the card and drifts gently.
+  return `<g class="drift">${inner}</g>`;
 }
 function card(p, B, m) {
   const T = themed(B, C.projects);
@@ -347,8 +348,8 @@ function card(p, B, m) {
 <style>${BASE_CSS}.sheen{animation:sh 5s ease-in-out infinite}@keyframes sh{0%,65%{transform:translateX(-90px)}100%{transform:translateX(${ctaW + 60}px)}}
 .line{animation:line 1s ${EASE} .15s backwards}@keyframes line{from{opacity:0;transform:translateY(${fs * 0.8}px)}}
 .cell{animation:cell 6s ease-in-out infinite backwards}@keyframes cell{0%{opacity:0}10%,85%{opacity:1}100%{opacity:1}}
-.caret{animation:pulse 1s steps(1) infinite}.dash{stroke-dashoffset:0;animation:dash 3s linear infinite}@keyframes dash{to{stroke-dashoffset:-40}}
-${reducedMotion('.sheen{opacity:0}.line,.cell,.dash{animation:none}')}</style>
+.caret{animation:pulse 1s steps(1) infinite}.drift{animation:drift 9s ease-in-out infinite}@keyframes drift{0%,100%{transform:none}50%{transform:translateY(-8px)}}.shadow{animation:shadow 9s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes shadow{0%,100%{transform:none}50%{transform:scaleX(.88);opacity:.7}}.dash{stroke-dashoffset:0;animation:dash 3s linear infinite}@keyframes dash{to{stroke-dashoffset:-40}}
+${reducedMotion('.sheen{opacity:0}.line,.cell,.dash,.drift,.shadow{animation:none}')}</style>
 ${cardBox('k', 0, 0, W, H, 24, T)}
 ${projectMedia(p, mx, my, mw, mH, T)}
 <text x="${pad}" y="${top + 14}" font-family="${MONO}" font-size="13" font-weight="600" letter-spacing="2"><tspan fill="${T.accent}">${p.n}</tspan><tspan fill="${T.muted}"> — ${esc(p.kind)}</tspan></text>
