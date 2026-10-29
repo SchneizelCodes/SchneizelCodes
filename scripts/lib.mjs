@@ -13,7 +13,7 @@ export const THEMES = {
   // Owner rule (2026-10-28, same as joshua-camacho.dev): backgrounds are only black or white;
   // colour lives only in text and buttons.
   dark: {
-    bg: '#0d1117', card: '#0a0a0a', card2: '#141414', line: '#262626', lineHi: '#3d3d3d',
+    bg: '#0a0a0a', card: '#0a0a0a', card2: '#141414', line: '#262626', lineHi: '#3d3d3d',
     text: '#ededed', muted: '#a3a3a3', faint: '#7a7a7a', dot: '#1f1f1f',
     accent: '#f59e0b', accentSoft: '#f59e0b', ok: '#3fb950', onAccent: '#111827',
     mono: '#d4d4d4',

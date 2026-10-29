@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="330" viewBox="0 0 480 330" role="img" aria-labelledby="t d"><title id="t">Resume: the paper version</title><desc id="d">Joshua Manuel Camacho. Full-stack and AI engineer. Read online or download a two-page PDF from the portfolio.</desc><rect width="480" height="330" fill="#ffffff"/>
+<defs><linearGradient id="resume-g" x1="0" y1="0" x2="1" y2="0.6"><stop offset="0" stop-color="#fe907d"/><stop offset="0.4" stop-color="#fb6058"/><stop offset="0.65" stop-color="#fa4148"/><stop offset="1" stop-color="#e34b56"/></linearGradient></defs>
+<style>.paper{animation:paper .9s cubic-bezier(.22,1,.36,1) both}@keyframes paper{from{opacity:0;transform:translateY(24px) rotate(-4deg)}to{opacity:1;transform:none}}@media (prefers-reduced-motion: reduce){*{animation:none!important}.paper{animation:none}}</style>
+<rect x=".5" y=".5" width="479" height="329" rx="18" fill="#ffffff" stroke="#e6e6e6"/>
+<g class="paper"><path d="M30 36h84l28 28v128H30zM114 36v28h28M48 92h74M48 112h74M48 132h52M48 152h66" fill="none" stroke="#dd3135" stroke-width="3"/></g>
+<text x="164" y="70" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#0a0a0a">Joshua Camacho</text>
+<text x="164" y="104" font-family="ui-monospace, SFMono-Regular, 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="12" fill="#525252">Full-Stack &amp; AI Engineer</text>
+<text x="30" y="242" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="17" fill="#0a0a0a">Experience, projects, skills and certificates.</text>
+<text x="30" y="282" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif" font-size="18" font-weight="650" fill="#dd3135">Read online / Download PDF</text></svg>

@@ -67,7 +67,7 @@ const C = { intro: 'night', portfolio: 'night', about: 'batanes', stack: 'boraca
 // and the same three stats as the site. Particles are the text colour: white on dark, black on light.
 const PORTRAIT = JSON.parse(readFileSync(new URL('./media/portrait-points.json', import.meta.url)));
 const PHRASES = ['full-stack products', 'AI-powered tools', 'accessible learning apps', 'apps for Filipino users'];
-const STATS = [['11', 'Repositories'], ['5', 'Projects'], ['3', 'Certificates']];
+const STATS = [['4', 'Public tools'], ['5', 'Projects'], ['3', 'Certificates']];
 function particles(cx, cy, ph, rad, T, id) {
   const pw = ph / PORTRAIT.aspect, x0 = cx - pw / 2, y0 = cy - ph / 2;
   const groups = Array.from({ length: 6 }, () => []);
@@ -100,7 +100,7 @@ function hero(B, m) {
   const stats = STATS.map(([n, l], i) => `<g class="rise" style="animation-delay:${1 + i * 0.12}s">${i ? `<line x1="${x + i * colW - 18}" y1="${yStats - 44}" x2="${x + i * colW - 18}" y2="${yStats + 26}" stroke="${T.line}"/>` : ''}
 <text x="${x + i * colW}" y="${yStats}" font-family="${SANS}" font-size="${m ? 46 : 52}" font-weight="700" letter-spacing="-2" fill="${T.text}">${n}</text>
 <text x="${x + i * colW}" y="${yStats + 24}" font-family="${MONO}" font-size="${m ? 12 : 13}" font-weight="600" letter-spacing="1.6" fill="${T.muted}">${l.toUpperCase()}</text></g>`).join('');
-  return `${open(W, H, 'Joshua Manuel Camacho — Full-Stack & AI Engineer', 'A particle portrait of Joshua inside a turning dial. Hey, I’m Joshua: full-stack and AI engineer from the Philippines. I build full-stack products, AI-powered tools, accessible learning apps and apps for Filipino users. 11 repositories, 5 projects, 3 certificates.', B)}
+  return `${open(W, H, 'Joshua Manuel Camacho — Full-Stack & AI Engineer', 'A particle portrait of Joshua inside a turning dial. Hey, I’m Joshua: full-stack and AI engineer from the Philippines. I build full-stack products, AI-powered tools, accessible learning apps and apps for Filipino users. 4 public skill tools, 5 projects, 3 certificates.', B)}
 <style>
   .spin{animation:spin linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
   .gather{animation:gather 1.8s ${EASE} backwards,twinkle 5s ease-in-out infinite alternate}
@@ -145,12 +145,13 @@ ${m ? lucide(o.icon, 13, 13, 18, on ? fg : T.accent, 2) : `${lucide(o.icon, 20, 
 }
 // Section titles match the portfolio's section headers word for word.
 export const SECTIONS = [
-  { id: 'about', combo: C.about, n: '01', label: 'About', title: 'I build things people actually use.', accent: 'use', note: 'What I build and how I work' },
-  { id: 'stack', combo: C.stack, n: '02', label: 'Stack', title: 'Tools I ship with', accent: 'ship', note: 'TypeScript end to end' },
-  { id: 'projects', combo: C.projects, n: '03', label: 'Work', title: 'Selected work', accent: 'work', note: 'Tap a card to open it' },
-  { id: 'activity', combo: C.activity, n: '04', label: 'GitHub', title: 'Every square is work', accent: 'work', note: 'Rebuilt from live data every 12 hours' },
-  { id: 'certificates', combo: C.certificates, n: '05', label: 'Certs', title: 'Always learning.', accent: 'learning', note: 'Certificates and badges' },
-  { id: 'contact', combo: C.contact, n: '06', label: 'Contact', title: 'Say hello.', accent: 'hello', note: 'Open to roles and collaborations' },
+  { id: 'projects', combo: C.projects, n: '01', label: 'Work', title: 'Selected work', accent: 'work', note: 'Live projects and honest local previews' },
+  { id: 'about', combo: C.about, n: '02', label: 'About', title: 'I build things people actually use.', accent: 'use', note: 'What I build and how I work' },
+  { id: 'stack', combo: C.stack, n: '03', label: 'Stack', title: 'Tools I ship with', accent: 'ship', note: 'TypeScript end to end' },
+  { id: 'activity', combo: C.activity, n: '04', label: 'GitHub', title: 'Every square is work', accent: 'work', note: 'Activity and open-source work' },
+  { id: 'resume', combo: C.certificates, n: '05', label: 'Resume', title: 'The paper version.', accent: 'version', note: 'Read online or download the PDF' },
+  { id: 'certificates', combo: C.certificates, n: '06', label: 'Certs', title: 'Always learning.', accent: 'learning', note: 'Certificates and badges' },
+  { id: 'contact', combo: C.contact, n: '07', label: 'Contact', title: 'Say hello.', accent: 'hello', note: 'Open to roles and collaborations' },
 ];
 function nav(s, B, m) {
   const T = themed(B, C.intro);
@@ -430,7 +431,6 @@ ${body}
 const LINKS = [
   { id: 'tindero-site', label: 'Visit live site', short: 'Live site', icon: 'globe', primary: true },
   { id: 'tindero-fb', label: 'Tindero on Facebook', short: 'Facebook', brand: 'facebook' },
-  { id: 'tindero-repo', label: 'View repo', short: 'Repo', icon: 'github' },
 ];
 function linkSlice(o, i, B, m, list = LINKS, combo = C.projects) {
   const T = themed(B, combo), K = T, n = list.length;
@@ -455,7 +455,7 @@ ${lucide('arrow-up-right', bx + bw - 38, by + bh / 2 - 9, 18, o.primary ? fg : K
 // The live portfolio, shown in a browser frame with a real screenshot (dark or light to match).
 const PORTFOLIO = {
   host: PORTFOLIO_URL.replace(/^https?:\/\//, ''),
-  body: 'A particle portrait built in three.js follows you through black and white bands: real project media, a GitHub wall, a downloadable résumé and certificates.',
+  body: 'A JC motion intro with optional music opens a portfolio of black and white bands, a particle portrait, real project media, a GitHub wall and a printable resume.',
   stack: ['Next.js', 'React', 'TypeScript', 'three.js', 'Tailwind CSS'],
 };
 function portfolio(B, m, dark) {
@@ -575,6 +575,20 @@ function socialSlice(o, i, B, m) {
   return footSlice({ W, H, r: 24, i, n, T, B, title: `${o.name}: ${o.handle}`, desc: `${o.name} profile ${o.handle}`, defs: tile, body: `<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="14" fill="url(#tile)"/>${glyph}${text}` });
 }
 
+
+function resumeCard(B, m) {
+  const T = themed(B, C.certificates), W = m ? 480 : 1200, H = m ? 330 : 260;
+  return `${open(W, H, 'Resume: the paper version', 'Joshua Manuel Camacho. Full-stack and AI engineer. Read online or download a two-page PDF from the portfolio.', B)}
+<defs>${gradDef('resume-g', T)}</defs>
+<style>.paper{animation:paper .9s ${EASE} both}@keyframes paper{from{opacity:0;transform:translateY(24px) rotate(-4deg)}to{opacity:1;transform:none}}${reducedMotion('.paper{animation:none}')}</style>
+<rect x=".5" y=".5" width="${W-1}" height="${H-1}" rx="18" fill="${T.card}" stroke="${T.line}"/>
+<g class="paper"><path d="M30 36h84l28 28v128H30zM114 36v28h28M48 92h74M48 112h74M48 132h52M48 152h66" fill="none" stroke="${T.accent}" stroke-width="3"/></g>
+<text x="${m?164:190}" y="70" font-family="${SANS}" font-size="${m?24:34}" font-weight="700" fill="${T.text}">Joshua Camacho</text>
+<text x="${m?164:190}" y="104" font-family="${MONO}" font-size="${m?12:16}" fill="${T.muted}">Full-Stack &amp; AI Engineer</text>
+<text x="${m?30:190}" y="${m?242:148}" font-family="${SANS}" font-size="${m?17:20}" fill="${T.text}">Experience, projects, skills and certificates.</text>
+<text x="${m?30:190}" y="${m?282:191}" font-family="${SANS}" font-size="${m?18:21}" font-weight="650" fill="${T.accent}">Read online / Download PDF</text></svg>`;
+}
+
 // ===================================================================== WRITE
 mkdirSync('assets', { recursive: true });
 let count = 0;
@@ -590,6 +604,7 @@ for (const [theme, B] of Object.entries(THEMES)) {
     put(`portfolio${sfx}`, portfolio(B, m, theme === 'dark'));
     put(`feature-tindero${sfx}`, feature(B, m));
     put(`certificates${sfx}`, certificates(B, m));
+    put(`resume-card${sfx}`, resumeCard(B, m));
     CERT_LINKS.forEach((o, i) => put(`link-${o.id}${sfx}`, linkSlice(o, i, B, m, CERT_LINKS, C.certificates)));
     LINKS.forEach((o, i) => put(`link-${o.id}${sfx}`, linkSlice(o, i, B, m)));
     PROJECTS.forEach((p) => put(`card-${p.id}${sfx}`, card(p, B, m)));

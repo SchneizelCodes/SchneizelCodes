@@ -23,36 +23,33 @@ const img = (base, alt, opts = {}) => ({ base, alt, ...opts }); // opts: width, 
 const row = (items, { gapless = false } = {}) => ({ row: items, gapless });
 
 // Nav pills (144×46 drawn at 38 px tall ≈ 119 px) centred in GitHub's ~838 px README column.
-const NAV = [['about', 'About'], ['stack', 'Stack'], ['projects', 'Work'], ['activity', 'GitHub'], ['certificates', 'Certificates'], ['contact', 'Contact']];
-const navSpan = (i) => { const col = 838, w = 119, gap = 4, x0 = (col - NAV.length * w - (NAV.length - 1) * gap) / 2, l = x0 + i * (w + gap); return [+(l / col).toFixed(3), +((l + w) / col).toFixed(3)]; };
+const NAV = [['projects', 'Work'], ['about', 'About'], ['stack', 'Stack'], ['activity', 'GitHub'], ['resume', 'Resume'], ['certificates', 'Certificates'], ['contact', 'Contact']];
+const navSpan = (i) => { const col = 838, w = 106, gap = 4, x0 = (col - NAV.length * w - (NAV.length - 1) * gap) / 2, l = x0 + i * (w + gap); return [+(l / col).toFixed(3), +((l + w) / col).toFixed(3)]; };
 
 const sections = [
-  { anchor: null, items: [img('hero', 'Hey, I’m Joshua Manuel Camacho: full-stack and AI engineer from the Philippines, shown as a particle portrait. I build full-stack products, AI-powered tools, accessible learning apps and apps for Filipino users. 11 repositories, 5 projects, 3 certificates.')] },
+  { anchor: null, items: [img('hero', 'Hey, I’m Joshua Manuel Camacho: full-stack and AI engineer from the Philippines, shown as a particle portrait. I build full-stack products, AI-powered tools, accessible learning apps and apps for Filipino users. 4 public skill tools, 5 projects, 3 certificates.')] },
   { switcher: true },
   {
-    items: [row(NAV.map(([id, label], i) => img(`nav-${id}`, label, { height: 38, href: `#${id}`, span: navSpan(i) })))],
+    items: [row(NAV.map(([id, label], i) => img(`nav-${id}`, label, { height: 34, href: `#${id}`, span: navSpan(i) })))],
   },
   {
     anchor: 'portfolio',
     items: [img('portfolio', 'My portfolio, joshua-camachodev.vercel.app: a particle portrait built in three.js follows you through black and white bands, with real project media, a GitHub wall, a downloadable résumé and certificates. Built with Next.js, React, TypeScript, three.js and Tailwind CSS. Visit portfolio.', { href: PORTFOLIO_URL })],
   },
+
+
+
+
+
+
+
   {
-    anchor: 'about', header: img('h-about', '01 About: I build things people actually use.'),
-    text: "I'm a full-stack engineer from the Philippines who likes building things people actually use, from a marketplace with mobile apps to a sign-language learning system. I work mostly in **TypeScript, React and Next.js** with **Supabase/PostgreSQL**, and I'm growing into **AI engineering**: local models, retrieval and agents that stay private by design.",
-    items: [img('about', 'Flagship, live: Tindero, shop, eat, sell and send in one Filipino app, live on desktop and mobile. Exploring: private, local AI with Ollama and retrieval. I care about: security by default, accessibility and tests. Open to: full-stack and AI engineering roles and collaborations.')],
-  },
-  {
-    anchor: 'stack', header: img('h-stack', '02 Stack: Tools I ship with'),
-    items: [img('stack', 'Frontend: TypeScript, JavaScript, React, Next.js, Vite, Tailwind CSS, Three.js, Framer Motion, HTML5, CSS. Backend and data: Node.js, Supabase, PostgreSQL, Zod, WebAuthn, row-level security. Mobile and shipping: Capacitor, Vercel, Netlify, GitHub Actions, Git, GitHub. AI and quality: Ollama, Gemini API, RAG and embeddings, Vitest, Figma.')],
-  },
-  {
-    anchor: 'projects', header: img('h-projects', '03 Work: Selected work'),
+    anchor: 'projects', header: img('h-projects', '01 Work: Selected work'),
     items: [
       row([
         img('feature-tindero', 'Tindero, my flagship project: shop, eat, sell and send in one Filipino app. Verified sellers, food ordering, a pre-loved marketplace and parcel sending. Live on desktop and mobile at tinderoph.vercel.app.', { href: 'https://tinderoph.vercel.app', break: true }),
-        img('link-tindero-site', 'Visit Tindero live site', { width: '33.33%', href: 'https://tinderoph.vercel.app', span: [0, 0.3333] }),
-        img('link-tindero-fb', 'Tindero on Facebook', { width: '33.33%', href: 'https://www.facebook.com/share/1A3EnLVQAT/?mibextid=wwXIfr', span: [0.3333, 0.6667] }),
-        img('link-tindero-repo', 'Tindero repository', { width: '33.33%', href: `https://github.com/${USER}/Tindero`, span: [0.6667, 1] }),
+        img('link-tindero-site', 'Visit Tindero live site', { width: '50%', href: 'https://tinderoph.vercel.app', span: [0, 0.5] }),
+        img('link-tindero-fb', 'Tindero on Facebook', { width: '50%', href: 'https://www.facebook.com/share/1A3EnLVQAT/?mibextid=wwXIfr', span: [0.5, 1] }),
       ], { gapless: true }),
       row([img('card-kamayo', 'Kamayo: learn Filipino Sign Language, one level at a time. A 100-level path, a sign dictionary, server-checked progress and row-level security. Live: visit kamayo-lyart.vercel.app.', { href: 'https://kamayo-lyart.vercel.app' })]),
       row([img('card-pandeloot', 'PandeLoot: a daily loot drop of Filipino bakery treats, with live chatter, vouchers and Gemini-powered picks. Live: visit pande-loot.vercel.app.', { href: 'https://pande-loot.vercel.app' })]),
@@ -62,6 +59,15 @@ const sections = [
     ],
   },
   {
+    anchor: 'about', header: img('h-about', '02 About: I build things people actually use.'),
+    text: "I'm a full-stack engineer from the Philippines who likes building things people actually use, from a marketplace with mobile apps to a sign-language learning system. I work mostly in **TypeScript, React and Next.js** with **Supabase/PostgreSQL**, and I'm growing into **AI engineering**: local models, retrieval and agents that stay private by design.",
+    items: [img('about', 'Flagship, live: Tindero, shop, eat, sell and send in one Filipino app, live on desktop and mobile. Exploring: private, local AI with Ollama and retrieval. I care about: security by default, accessibility and tests. Open to: full-stack and AI engineering roles and collaborations.')],
+  },
+  {
+    anchor: 'stack', header: img('h-stack', '03 Stack: Tools I ship with'),
+    items: [img('stack', 'Frontend: TypeScript, JavaScript, React, Next.js, Vite, Tailwind CSS, Three.js, Framer Motion, HTML5, CSS. Backend and data: Node.js, Supabase, PostgreSQL, Zod, WebAuthn, row-level security. Mobile and shipping: Capacitor, Vercel, Netlify, GitHub Actions, Git, GitHub. AI and quality: Ollama, Gemini API, RAG and embeddings, Vitest, Figma.')],
+  },
+  {
     anchor: 'activity', header: img('h-activity', '04 GitHub: Every square is work'),
     items: [
       row([img('activity', 'My GitHub activity: total contributions, contributions this month, weekly streak and contributions per week for the last 16 weeks.', { remote: true })]),
@@ -69,7 +75,12 @@ const sections = [
     ],
   },
   {
-    anchor: 'certificates', header: img('h-certificates', '05 Certificates: Always learning.'),
+    anchor: 'resume', header: img('h-resume', '05 Resume: The paper version.'),
+    items: [img('resume-card', 'Joshua Camacho: full-stack and AI engineer. Read the resume online.', { href: `${PORTFOLIO_URL}/resume` })],
+    text: `[Read online](${PORTFOLIO_URL}/resume) / [Download PDF](${PORTFOLIO_URL}/joshua-camacho-resume.pdf)`,
+  },
+  {
+    anchor: 'certificates', header: img('h-certificates', '06 Certificates: Always learning.'),
     items: [row([
       img('certificates', 'Certificate: Java Masterclass 2025, 130+ hours of expert lessons, Udemy, October 2026. Certificate: Introduction to Modern AI, Cisco Networking Academy, October 2026. Badge: Global AI Manila AgentCamp 2026 attendee, The Global AI Community, February 2026.', { break: true }),
       img('link-cert-udemy', 'Verify the Java Masterclass certificate on Udemy', { width: '33.33%', href: 'https://ude.my/UC-5e30f6f3-65f8-4eec-91c1-bb84714b4e80', span: [0, 0.3333] }),
@@ -78,7 +89,7 @@ const sections = [
     ], { gapless: true })],
   },
   {
-    anchor: 'contact', header: img('h-contact', '06 Contact: Say hello.'),
+    anchor: 'contact', header: img('h-contact', '07 Contact: Say hello.'),
     items: [row([
       img('cta', 'Available for work. Let’s build something people use. Full-stack and AI engineering roles, Philippines, remote-friendly. Connect on LinkedIn.', { href: 'https://www.linkedin.com/in/joshua-manuel-camacho-b392963b0/', break: true }),
       img('social-linkedin', 'LinkedIn: Joshua Manuel Camacho', { width: '25%', href: 'https://www.linkedin.com/in/joshua-manuel-camacho-b392963b0/', span: [0, 0.25] }),
