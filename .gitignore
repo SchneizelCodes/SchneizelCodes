@@ -1,1 +1,82 @@
 _to_delete/
+
+# BEGIN SHARED SECRET PROTECTION
+# Keep active environment files at their loader-required paths. Never force-add them.
+.env
+.env.*
+*.env
+*.env.*
+.envrc
+.[eE][nN][vV]
+.[eE][nN][vV].*
+*.[eE][nN][vV]
+*.[eE][nN][vV].*
+!.env.example
+# Example files must contain placeholders only; never real credentials.
+
+# Private keys, signing containers and local credential stores
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_rsa.*
+id_dsa
+id_dsa.*
+id_ecdsa
+id_ecdsa.*
+id_ed25519
+id_ed25519.*
+.git-credentials
+.netrc
+_netrc
+.pypirc
+.npmrc.local
+credentials.json
+credentials.local.*
+service-account.json
+service-account-*.json
+service_account.json
+service_account_*.json
+*-firebase-adminsdk-*.json
+client_secret_*.json
+token.pickle
+*.tfstate
+*.tfstate.*
+secring.gpg
+.ssh/
+.aws/
+.azure/
+.kube/
+.terraform/
+.config/gcloud/
+supabase/.temp/
+
+# Reserved local-only material; keep application source and public assets tracked.
+/.private/
+*.[kK][eE][yY]
+*.[pP][eE][mM]
+*.[pP][11][22]
+*.[pP][fF][xX]
+*.[jJ][kK][sS]
+*.[kK][eE][yY][sS][tT][oO][rR][eE]
+*[sS]ervice[aA]ccount*.json
+# Additional credential formats and authenticated browser captures
+.npmrc
+credentials
+credentials.yaml
+credentials.yml
+secrets.json
+secrets.yaml
+secrets.yml
+secrets.toml
+secrets.local.*
+.secrets/
+*serviceAccount*.json
+*service-account*.json
+storage-state*.json
+.auth/
+*.har
+# END SHARED SECRET PROTECTION
